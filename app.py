@@ -199,7 +199,7 @@ def produto(slug):
         print(f"ERRO PRODUTO: {e}")
         return f"Erro interno: {e}", 500
 
-    return render_template('produto.html', loja=loja, categorias=categorias, p=product_data, directus_url=DIRECTUS_URL)
+    return render_template('produtos.html', loja=loja, categorias=categorias, p=product_data, directus_url=DIRECTUS_URL)
 
 # --- ROTA: POST DO BLOG - CAMINHO FIXADO /presentes/... ---
 @app.route('/presentes/blog/<slug>')
