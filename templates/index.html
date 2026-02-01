@@ -13,76 +13,31 @@
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
         
-        :root {
-            --primary: {{ loja.cor_primaria or '#dc2626' }};
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .font-serif-display {
-            font-family: 'Playfair Display', serif;
-        }
-
+        :root { --primary: {{ loja.cor_primaria or '#dc2626' }}; }
+        body { font-family: 'Poppins', sans-serif; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
         .text-theme { color: var(--primary); }
         .bg-theme { background-color: var(--primary); }
         .border-theme { border-color: var(--primary); }
         .hover\:bg-theme:hover { background-color: var(--primary); }
         .ring-theme { --tw-ring-color: var(--primary); }
         
-        /* Dropdown Categorias */
-        .category-dropdown:hover .dropdown-menu {
-            display: block;
-        }
+        .category-dropdown:hover .dropdown-menu { display: block; }
 
-        /* Slider Principal */
-        .slider-container {
-            position: relative;
-            overflow: hidden;
-            height: 500px; /* Altura original do lp2 */
-        }
-        .slide {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            transition: opacity 0.8s ease-in-out;
-            opacity: 0;
-            display: flex;
-            align-items: center;
-        }
-        .slide.active {
-            opacity: 1;
-        }
+        .slider-container { position: relative; overflow: hidden; height: 500px; }
+        .slide { position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; transition: opacity 0.8s ease-in-out; opacity: 0; display: flex; align-items: center; }
+        .slide.active { opacity: 1; }
         
-        /* Animações e Detalhes */
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
             100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
         }
-        .animate-urgent {
-            animation: pulse-red 2s infinite;
-        }
-
-        .modal-overlay {
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-        }
-        
-        .color-dot {
-            transition: all 0.2s;
-        }
-        .color-dot:hover {
-            transform: scale(1.1);
-        }
-
-        /* Ajustes Mobile */
-        @media(max-width: 768px) {
-            .slider-container { height: 300px; }
-        }
+        .animate-urgent { animation: pulse-red 2s infinite; }
+        .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .color-dot { transition: all 0.2s; }
+        .color-dot:hover { transform: scale(1.1); }
+        @media(max-width: 768px) { .slider-container { height: 300px; } }
     </style>
 </head>
 <body class="bg-white text-gray-800 flex flex-col min-h-screen">
@@ -95,16 +50,14 @@
                     <span>Português</span>
                 </div>
             </div>
-            
             <div class="hidden lg:flex items-center space-x-6 normal-case text-[11px]">
                 <div class="flex items-center space-x-1">
                     <i data-lucide="phone" class="w-3 h-3 text-theme"></i>
                     <span>WhatsApp: <span class="font-semibold">{{ loja.whatsapp }}</span></span>
                 </div>
             </div>
-
             <div class="flex items-center space-x-3">
-                <span class="text-[9px] font-bold text-theme">ENVIOS TERÇA E QUINTA</span>
+                <span class="text-[9px] font-bold text-theme">ENVIOS PARA TODO BRASIL</span>
             </div>
         </div>
     </div>
@@ -115,7 +68,6 @@
                 <input type="text" placeholder="Buscar produtos..." class="w-full border-b border-gray-200 py-2 pr-8 text-sm focus:outline-none focus:border-theme">
                 <i data-lucide="search" class="absolute right-0 top-2.5 w-4 h-4 text-gray-400"></i>
             </div>
-
             <div class="flex justify-start md:justify-center">
                 <a href="/" class="flex items-center gap-2">
                     {% if loja.logo %}
@@ -125,7 +77,6 @@
                     {% endif %}
                 </a>
             </div>
-
             <div class="flex justify-end items-center space-x-4">
                 <button onclick="toggleCart()" class="flex items-center group cursor-pointer">
                     <div class="relative p-2 border border-gray-100 rounded-l group-hover:bg-gray-50 transition-colors">
@@ -160,7 +111,6 @@
                     </ul>
                 </div>
             </div>
-
             <ul class="hidden md:flex items-center space-x-10 ml-12 font-bold uppercase text-[11px] tracking-[0.2em] text-gray-700">
                 <li><a href="/" class="hover:text-theme transition-colors">Início</a></li>
                 <li><a href="#" class="hover:text-theme transition-colors">Lançamentos</a></li>
@@ -173,10 +123,6 @@
     <section class="slider-container bg-gray-100">
         {% if loja.banner1 %}
         <div class="slide active" style="background-image: url('{{ loja.banner1 }}');">
-            <div class="container mx-auto px-4">
-                <div class="max-w-xl">
-                    </div>
-            </div>
             <a href="{{ loja.link1 }}" class="absolute inset-0 z-10"></a>
         </div>
         {% else %}
@@ -184,18 +130,12 @@
             <h2 class="text-4xl text-gray-400 font-bold">Banner Principal</h2>
         </div>
         {% endif %}
-
         {% if loja.banner2 %}
         <div class="slide" style="background-image: url('{{ loja.banner2 }}');">
             <a href="{{ loja.link2 }}" class="absolute inset-0 z-10"></a>
         </div>
-        
-        <button onclick="changeSlide(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white p-3 rounded-full backdrop-blur-sm transition-all z-20">
-            <i data-lucide="chevron-left" class="w-6 h-6"></i>
-        </button>
-        <button onclick="changeSlide(1)" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white p-3 rounded-full backdrop-blur-sm transition-all z-20">
-            <i data-lucide="chevron-right" class="w-6 h-6"></i>
-        </button>
+        <button onclick="changeSlide(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white p-3 rounded-full backdrop-blur-sm transition-all z-20"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+        <button onclick="changeSlide(1)" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white p-3 rounded-full backdrop-blur-sm transition-all z-20"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
         {% endif %}
     </section>
 
@@ -209,11 +149,11 @@
     </section>
 
     <section class="pb-16 container mx-auto px-4">
-        
         {% if produtos|length == 0 %}
         <div class="text-center py-20 bg-gray-50 rounded-lg">
             <i data-lucide="package-open" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
-            <p class="text-gray-500">Nenhum produto cadastrado nesta loja.</p>
+            <p class="text-gray-500">Nenhum produto cadastrado nesta categoria.</p>
+            <a href="/" class="text-theme mt-2 block font-bold">Ver Todos</a>
         </div>
         {% endif %}
 
@@ -221,18 +161,6 @@
             {% for p in produtos %}
             <div class="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col relative" id="card-{{ p.id }}">
                 
-                <div class="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start">
-                    {% if p.origem == 'Estoque Proprio' %}
-                    <span class="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
-                        <i data-lucide="zap" class="w-3 h-3"></i> PRONTA ENTREGA
-                    </span>
-                    {% elif p.origem == 'Mauro' %}
-                    <span class="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
-                        <i data-lucide="palette" class="w-3 h-3"></i> SORTIDO
-                    </span>
-                    {% endif %}
-                </div>
-
                 {% if p.urgencia == 'Poucas Unidades' or p.urgencia == 'Alta Procura' %}
                 <div class="absolute top-2 right-2 z-10">
                     <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm animate-urgent border border-red-500">
@@ -241,12 +169,14 @@
                 </div>
                 {% endif %}
 
-                <div class="aspect-[4/5] bg-gray-50 relative overflow-hidden">
+                <a href="/produto/{{ p.slug }}" class="aspect-[4/5] bg-gray-50 relative overflow-hidden block">
                     <img id="img-{{ p.id }}" src="{{ p.imagem }}" alt="{{ p.nome }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                </div>
+                </a>
 
                 <div class="p-4 flex flex-col flex-grow text-center">
-                    <h3 class="font-bold text-gray-800 text-sm md:text-base leading-tight mb-2 line-clamp-2 min-h-[2.5em]">{{ p.nome }}</h3>
+                    <a href="/produto/{{ p.slug }}" class="font-bold text-gray-800 text-sm md:text-base leading-tight mb-2 line-clamp-2 min-h-[2.5em] hover:text-theme transition-colors">
+                        {{ p.nome }}
+                    </a>
                     
                     <div class="min-h-[40px] mb-2 flex justify-center">
                         {% if p.variantes and p.variantes|length > 0 %}
@@ -272,9 +202,7 @@
                             <span class="text-lg font-bold text-theme">R$ {{ "%.2f"|format(p.preco)|replace('.', ',') }}</span>
                         </div>
                         {% else %}
-                        <div class="mb-3">
-                            <span class="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded uppercase tracking-wider">Sob Consulta</span>
-                        </div>
+                        <div class="mb-3"><span class="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded uppercase tracking-wider">Sob Consulta</span></div>
                         {% endif %}
 
                         <button onclick='addToCartWithColor({{ p | tojson }})' class="w-full bg-gray-900 hover:bg-theme text-white font-bold py-3 px-4 text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2 group-hover:shadow-lg">
@@ -296,18 +224,15 @@
                 <img src="{{ loja.bannermenor1 }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                 <div class="absolute bottom-8 left-8 z-20">
                     <h3 class="text-white text-3xl font-bold mb-2">Coleção Exclusiva</h3>
-                    <a href="#" class="text-white text-xs font-bold border-b-2 border-white pb-1 uppercase tracking-widest hover:text-theme hover:border-theme transition-colors">Ver Mais</a>
                 </div>
             </div>
             {% endif %}
-            
             {% if loja.bannermenor2 %}
             <div class="relative h-[300px] overflow-hidden group">
                 <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors z-10"></div>
                 <img src="{{ loja.bannermenor2 }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                 <div class="absolute bottom-8 left-8 z-20">
                     <h3 class="text-white text-3xl font-bold mb-2">Ofertas da Semana</h3>
-                    <a href="#" class="text-white text-xs font-bold border-b-2 border-white pb-1 uppercase tracking-widest hover:text-theme hover:border-theme transition-colors">Ver Mais</a>
                 </div>
             </div>
             {% endif %}
@@ -319,27 +244,17 @@
     <section class="py-16 bg-white border-t border-gray-100">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12">
-                <h2 class="text-2xl font-bold uppercase tracking-tight relative inline-block">
-                    Do Nosso Blog
-                    <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-theme"></span>
-                </h2>
+                <h2 class="text-2xl font-bold uppercase tracking-tight relative inline-block">Do Nosso Blog<span class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-theme"></span></h2>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {% for post in posts %}
                 <div class="group cursor-pointer">
                     <div class="relative overflow-hidden aspect-[4/3] mb-4 bg-gray-100">
                         <img src="{{ post.capa }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                        <div class="absolute bottom-4 left-4 bg-white px-3 py-1 text-[10px] font-bold uppercase text-gray-800 tracking-widest">
-                            {{ post.data }}
-                        </div>
+                        <div class="absolute bottom-4 left-4 bg-white px-3 py-1 text-[10px] font-bold uppercase text-gray-800 tracking-widest">{{ post.data }}</div>
                     </div>
-                    <h3 class="font-bold text-base text-gray-900 mb-2 group-hover:text-theme transition-colors line-clamp-2">
-                        {{ post.titulo }}
-                    </h3>
-                    <p class="text-xs text-gray-500 line-clamp-3 leading-relaxed">
-                        {{ post.resumo }}
-                    </p>
+                    <h3 class="font-bold text-base text-gray-900 mb-2 group-hover:text-theme transition-colors line-clamp-2">{{ post.titulo }}</h3>
+                    <p class="text-xs text-gray-500 line-clamp-3 leading-relaxed">{{ post.resumo }}</p>
                     <a href="/blog" class="text-[10px] font-bold uppercase tracking-widest mt-3 inline-block border-b border-gray-300 pb-0.5 group-hover:border-theme group-hover:text-theme transition-colors">Ler Mais</a>
                 </div>
                 {% endfor %}
@@ -357,38 +272,25 @@
                 <span class="text-xl font-bold text-gray-400">{{ loja.nome }}</span>
                 {% endif %}
             </div>
-            <p class="text-sm text-gray-500 max-w-md mx-auto mb-8 leading-relaxed">
-                Selecionamos os melhores produtos da 25 de Março e importados para impulsionar suas vendas e presentear com estilo.
-            </p>
+            <p class="text-sm text-gray-500 max-w-md mx-auto mb-8 leading-relaxed">Selecionamos os melhores produtos da 25 de Março e importados para impulsionar suas vendas e presentear com estilo.</p>
             <div class="flex justify-center space-x-8 text-gray-400 text-xs font-bold uppercase tracking-widest">
                 <a href="#" class="hover:text-theme transition-colors">Privacidade</a>
                 <a href="#" class="hover:text-theme transition-colors">Termos</a>
                 <a href="#" class="hover:text-theme transition-colors">Envios</a>
                 <a href="#" class="hover:text-theme transition-colors">Contato</a>
             </div>
-            <p class="mt-12 text-[10px] text-gray-300 uppercase tracking-widest">
-                © 2026 {{ loja.nome }}. Powered by Leanttro.
-            </p>
+            <p class="mt-12 text-[10px] text-gray-300 uppercase tracking-widest">© 2026 {{ loja.nome }}. Powered by Leanttro.</p>
         </div>
     </footer>
 
     <div id="cart-modal" class="fixed inset-0 z-[60] hidden">
         <div class="absolute inset-0 modal-overlay transition-opacity duration-300" onclick="toggleCart()"></div>
-        
         <div class="absolute right-0 top-0 h-full w-full md:w-[450px] bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="cart-panel">
-            
             <div class="p-6 border-b flex justify-between items-center bg-gray-50">
-                <h2 class="font-bold text-lg flex items-center gap-2 text-gray-800">
-                    <i data-lucide="shopping-cart" class="w-5 h-5 text-theme"></i> Sua Sacola
-                </h2>
-                <button onclick="toggleCart()" class="text-gray-400 hover:text-red-500 transition-colors">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
+                <h2 class="font-bold text-lg flex items-center gap-2 text-gray-800"><i data-lucide="shopping-cart" class="w-5 h-5 text-theme"></i> Sua Sacola</h2>
+                <button onclick="toggleCart()" class="text-gray-400 hover:text-red-500 transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-
-            <div class="flex-1 overflow-y-auto p-6 space-y-6" id="cart-items">
-                </div>
-
+            <div class="flex-1 overflow-y-auto p-6 space-y-6" id="cart-items"></div>
             <div class="p-6 border-t bg-gray-50 space-y-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
                 <div class="bg-white p-4 rounded border border-gray-200">
                     <label class="text-[10px] font-bold uppercase text-gray-400 mb-2 block tracking-wider">Simular Frete</label>
@@ -398,12 +300,9 @@
                     </div>
                     <div id="frete-options" class="space-y-1 text-sm"></div>
                 </div>
-
                 <div class="flex justify-between items-center text-xl font-bold pt-2 border-t border-gray-200">
-                    <span class="text-gray-600">Total:</span>
-                    <span id="cart-total" class="text-theme">R$ 0,00</span>
+                    <span class="text-gray-600">Total:</span><span id="cart-total" class="text-theme">R$ 0,00</span>
                 </div>
-
                 <button onclick="finalizarNoZap()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-green-200 hover:shadow-green-300 transition-all active:scale-95 animate-pulse">
                     <i data-lucide="message-circle" class="w-5 h-5"></i> FECHAR PEDIDO NO WHATSAPP
                 </button>
@@ -414,29 +313,21 @@
 
     <script>
         lucide.createIcons();
-        
-        // --- SLIDER AUTOMÁTICO ---
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
-        
         function changeSlide(direction) {
             if (slides.length === 0) return;
             slides[currentSlide].classList.remove('active');
             currentSlide = (currentSlide + direction + slides.length) % slides.length;
             slides[currentSlide].classList.add('active');
         }
-        
-        if(slides.length > 1) {
-            setInterval(() => changeSlide(1), 5000);
-        }
+        if(slides.length > 1) setInterval(() => changeSlide(1), 5000);
 
-        // --- VARIAVEIS GLOBAIS ---
         let cart = [];
         let userSelections = {};
         let freteSelecionado = null;
         const lojaPhone = "{{ loja.whatsapp }}";
 
-        // --- CARRINHO UI ---
         function toggleCart() {
             const modal = document.getElementById('cart-modal');
             const panel = document.getElementById('cart-panel');
@@ -461,15 +352,9 @@
 
             container.innerHTML = '';
             let total = 0;
-
             if (cart.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-10 opacity-50">
-                        <i data-lucide="shopping-bag" class="w-12 h-12 mx-auto mb-2"></i>
-                        <p class="text-sm">Sua sacola está vazia.</p>
-                    </div>`;
+                container.innerHTML = `<div class="text-center py-10 opacity-50"><i data-lucide="shopping-bag" class="w-12 h-12 mx-auto mb-2"></i><p class="text-sm">Sua sacola está vazia.</p></div>`;
             }
-
             cart.forEach((item, i) => {
                 total += (item.preco || 0) * item.qtd;
                 container.innerHTML += `
@@ -477,8 +362,6 @@
                         <img src="${item.imagem}" class="w-16 h-16 object-cover rounded-md bg-gray-100 border border-gray-200">
                         <div class="flex-1 min-w-0">
                             <h4 class="font-bold text-xs text-gray-800 line-clamp-2 leading-snug mb-1">${item.nome_exibicao}</h4>
-                            <p class="text-[10px] text-gray-400 mb-2">${item.origem}</p>
-                            
                             <div class="flex justify-between items-center">
                                 <span class="text-theme font-bold text-sm">R$ ${(item.preco * item.qtd).toFixed(2).replace('.',',')}</span>
                                 <div class="flex items-center gap-3 bg-gray-100 rounded-lg px-2 py-1">
@@ -489,15 +372,12 @@
                         </div>
                     </div>`;
             });
-            
             const totalFmt = "R$ " + total.toFixed(2).replace('.', ',');
             totalEl.innerText = totalFmt;
             if(headerTotalEl) headerTotalEl.innerText = totalFmt;
-            
             lucide.createIcons();
         }
 
-        // --- ADD TO CART ---
         function selectVariant(pid, name, photo) {
             const img = document.getElementById(`img-${pid}`);
             const txt = document.getElementById(`selected-color-text-${pid}`);
@@ -517,7 +397,6 @@
         function addToCartWithColor(product) {
             let final = { ...product };
             const sel = userSelections[product.id];
-            
             if (sel) {
                 final.nome_exibicao = `${product.nome} (${sel.nome})`;
                 final.imagem = sel.foto;
@@ -526,154 +405,54 @@
                 final.nome_exibicao = product.nome;
                 final.cart_id = `${product.id}-padrao`;
             }
-
             const idx = cart.findIndex(i => i.cart_id === final.cart_id);
-            if (idx > -1) {
-                cart[idx].qtd++;
-            } else {
-                final.qtd = 1;
-                cart.push(final);
-            }
-            
+            if (idx > -1) cart[idx].qtd++; else { final.qtd = 1; cart.push(final); }
             updateCartUI();
             toggleCart();
-            
-            // Feedback Visual
-            const btnText = document.getElementById(`btn-text-${product.id}`);
-            if(btnText) {
-                const old = btnText.innerText;
-                btnText.innerText = "Adicionado!";
-                setTimeout(() => btnText.innerText = old, 1500);
-            }
         }
 
-        function removeFromCart(idx) {
-            cart.splice(idx, 1);
-            updateCartUI();
-        }
+        function removeFromCart(idx) { cart.splice(idx, 1); updateCartUI(); }
 
-        // --- FRETE ---
         async function calcularFrete() {
             const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
             const div = document.getElementById('frete-options');
-            
-            if (cep.length !== 8) {
-                div.innerHTML = '<span class="text-red-500 text-xs">CEP inválido.</span>';
-                return;
-            }
-
+            if (cep.length !== 8) { div.innerHTML = '<span class="text-red-500 text-xs">CEP inválido.</span>'; return; }
             div.innerHTML = '<span class="text-gray-400 text-xs animate-pulse">Calculando...</span>';
-            
             try {
-                const res = await axios.post('/api/calcular-frete', {
-                    cep, 
-                    itens: cart.map(i => ({ classe_frete: i.classe_frete, qtd: i.qtd, preco: i.preco }))
-                });
-                
+                const res = await axios.post('/api/calcular-frete', { cep, itens: cart.map(i => ({ classe_frete: i.classe_frete, qtd: i.qtd, preco: i.preco })) });
                 let html = '';
-                
-                // Uber Flash (São Paulo Capital - Faixa Genérica)
                 if (cep.startsWith('01') || cep.startsWith('02') || cep.startsWith('03') || cep.startsWith('04') || cep.startsWith('05')) {
-                    html += `
-                    <label class="flex justify-between items-center p-2 border border-green-200 bg-green-50 rounded mb-1 cursor-pointer hover:bg-green-100 transition-colors">
-                        <div class="flex items-center gap-2">
-                            <input type="radio" name="frete" onchange="selectFrete('Uber Flash', 0)" class="text-green-600 focus:ring-green-500">
-                            <div class="text-xs">
-                                <b class="text-green-800">Uber Flash / Motoboy</b><br>
-                                <span class="text-green-600">Entrega Expressa</span>
-                            </div>
-                        </div>
-                        <span class="font-bold text-xs text-green-800">A Combinar</span>
-                    </label>`;
+                    html += `<label class="flex justify-between items-center p-2 border border-green-200 bg-green-50 rounded mb-1 cursor-pointer hover:bg-green-100"><div class="flex items-center gap-2"><input type="radio" name="frete" onchange="selectFrete('Uber Flash', 0)" class="text-green-600"><div class="text-xs"><b class="text-green-800">Uber Flash</b><br><span class="text-green-600">Expressa</span></div></div><span class="font-bold text-xs text-green-800">A Combinar</span></label>`;
                 }
-
-                if (res.data.length === 0 && html === '') {
-                    div.innerHTML = '<span class="text-xs text-gray-500">Nenhuma opção disponível.</span>';
-                    return;
-                }
-
+                if (res.data.length === 0 && html === '') { div.innerHTML = '<span class="text-xs text-gray-500">Nenhuma opção disponível.</span>'; return; }
                 res.data.forEach(opt => {
-                    html += `
-                    <label class="flex justify-between items-center p-2 border border-gray-200 rounded mb-1 cursor-pointer hover:bg-gray-50 transition-colors">
-                        <div class="flex items-center gap-2">
-                            <input type="radio" name="frete" onchange="selectFrete('${opt.transportadora} - ${opt.servico}', ${opt.preco})" class="text-gray-800 focus:ring-gray-800">
-                            <div class="text-xs text-gray-600">
-                                <b class="text-gray-800">${opt.transportadora}</b><br>
-                                ${opt.prazo} dias úteis
-                            </div>
-                        </div>
-                        <span class="font-bold text-xs text-gray-800">R$ ${opt.preco.toFixed(2).replace('.',',')}</span>
-                    </label>`;
+                    html += `<label class="flex justify-between items-center p-2 border border-gray-200 rounded mb-1 cursor-pointer hover:bg-gray-50"><div class="flex items-center gap-2"><input type="radio" name="frete" onchange="selectFrete('${opt.transportadora} - ${opt.servico}', ${opt.preco})" class="text-gray-800"><div class="text-xs text-gray-600"><b class="text-gray-800">${opt.transportadora}</b><br>${opt.prazo} dias úteis</div></div><span class="font-bold text-xs text-gray-800">R$ ${opt.preco.toFixed(2).replace('.',',')}</span></label>`;
                 });
-                
                 div.innerHTML = html;
-            } catch (e) {
-                console.error(e);
-                div.innerHTML = '<span class="text-red-500 text-xs">Erro ao calcular. Tente mais tarde.</span>';
-            }
+            } catch (e) { div.innerHTML = '<span class="text-red-500 text-xs">Erro ao calcular.</span>'; }
         }
 
-        function selectFrete(nome, valor) {
-            freteSelecionado = { nome, valor };
-        }
+        function selectFrete(nome, valor) { freteSelecionado = { nome, valor }; }
 
-        // --- CHECKOUT WHATSAPP ---
         function finalizarNoZap() {
             if (cart.length === 0) return alert("Adicione produtos primeiro!");
-            
             let msg = `👋 Olá! Vim do site e quero fechar meu pedido:\n\n`;
             let total = 0;
-            
-            // Agrupar visualmente no Zap
-            const pronta = cart.filter(i => i.origem === 'Estoque Proprio');
-            const outros = cart.filter(i => i.origem !== 'Estoque Proprio');
-
-            if(pronta.length > 0) {
-                msg += `*⚡ PRONTA ENTREGA:*\n`;
-                pronta.forEach(i => {
-                    msg += `— ${i.qtd}x ${i.nome_exibicao}\n   R$ ${(i.preco * i.qtd).toFixed(2)}\n`;
-                    total += i.preco * i.qtd;
-                });
-                msg += `\n`;
-            }
-
-            if(outros.length > 0) {
-                msg += `*📦 PEDIDO DE FÁBRICA:*\n`;
-                outros.forEach(i => {
-                    msg += `— ${i.qtd}x ${i.nome_exibicao}\n`;
-                    if(i.preco) {
-                        msg += `   R$ ${(i.preco * i.qtd).toFixed(2)}\n`;
-                        total += i.preco * i.qtd;
-                    } else {
-                        msg += `   (Sob Consulta)\n`;
-                    }
-                });
-                msg += `\n`;
-            }
-            
-            msg += `--------------------------------\n`;
-            msg += `*💰 Subtotal:* R$ ${total.toFixed(2).replace('.', ',')}\n`;
-            
+            cart.forEach(i => {
+                msg += `— ${i.qtd}x ${i.nome_exibicao}\n`;
+                if(i.preco) { msg += `   R$ ${(i.preco * i.qtd).toFixed(2)}\n`; total += i.preco * i.qtd; }
+                else { msg += `   (Sob Consulta)\n`; }
+            });
+            msg += `--------------------------------\n*💰 Subtotal:* R$ ${total.toFixed(2).replace('.', ',')}\n`;
             if (freteSelecionado) {
                 msg += `*🚚 Frete:* ${freteSelecionado.nome}\n`;
-                if(freteSelecionado.valor > 0) {
-                    msg += `*Valor Frete:* R$ ${freteSelecionado.valor.toFixed(2).replace('.', ',')}\n`;
-                    msg += `*TOTAL FINAL:* R$ ${(total + freteSelecionado.valor).toFixed(2).replace('.', ',')}\n`;
-                } else {
-                    msg += `*Valor Frete:* A Combinar\n`;
-                    msg += `*TOTAL FINAL:* R$ ${total.toFixed(2).replace('.', ',')} (+ Frete)\n`;
-                }
-            } else {
-                msg += `*🚚 Frete:* A calcular/combinar\n`;
-            }
-
+                if(freteSelecionado.valor > 0) msg += `*Valor Frete:* R$ ${freteSelecionado.valor.toFixed(2).replace('.', ',')}\n*TOTAL FINAL:* R$ ${(total + freteSelecionado.valor).toFixed(2).replace('.', ',')}\n`;
+                else msg += `*Valor Frete:* A Combinar\n*TOTAL FINAL:* R$ ${total.toFixed(2).replace('.', ',')} (+ Frete)\n`;
+            } else { msg += `*🚚 Frete:* A calcular/combinar\n`; }
             const cep = document.getElementById('cep-input').value;
             if(cep) msg += `📍 CEP: ${cep}\n`;
-
             msg += `\nAguardo a chave Pix!`;
-
-            const url = `https://wa.me/${lojaPhone}?text=${encodeURIComponent(msg)}`;
-            window.open(url, '_blank');
+            window.open(`https://wa.me/${lojaPhone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
     </script>
 </body>
