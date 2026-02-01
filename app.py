@@ -8,15 +8,17 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# --- CONFIGURAÇÕES ---
+# --- CONFIGURAÇÕES GERAIS ---
 DIRECTUS_URL = os.getenv("DIRECTUS_URL", "https://api2.leanttro.com")
 DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN", "") 
 LOJA_ID = os.getenv("LOJA_ID", "") 
 
-# CONFIGURAÇÕES SUPERFRETE
+# --- CONFIGURAÇÕES SUPERFRETE (Doc Oficial) ---
 SUPERFRETE_TOKEN = os.getenv("SUPERFRETE_TOKEN", "")
-SUPERFRETE_URL = os.getenv("SUPERFRETE_URL", "https://api.superfrete.com/api/v1/calculator")
-CEP_ORIGEM = "01026000" # CEP da 25 de Março (Genérico)
+# URL Padrão (Se for produção, remova o 'sandbox.' da URL no .env)
+# Pela sua doc: https://sandbox.superfrete.com/api/v0/calculator
+SUPERFRETE_URL = os.getenv("SUPERFRETE_URL", "https://api.superfrete.com/api/v0/calculator")
+CEP_ORIGEM = "01026000" # CEP da 25 de Março
 
 # --- TABELA DE MEDIDAS (Simulação) ---
 DIMENSOES = {
@@ -49,7 +51,7 @@ def index():
             produtos_raw = resp_prod.json().get('data', [])
             
             for p in produtos_raw:
-                # Tratamento Inteligente de Imagem (URL ou ID)
+                # Tratamento de Imagem
                 img_raw = p.get('imagem_destaque') or p.get('imagem1')
                 img_url = "https://via.placeholder.com/400?text=Sem+Foto"
                 
@@ -98,7 +100,7 @@ def calcular_frete():
     if not cep_destino or not itens_carrinho:
         return jsonify({"erro": "Dados inválidos"}), 400
 
-    # 1. Consolida os volumes (Soma pesos para economizar)
+    # 1. Consolida volumes
     peso_total = 0.0
     altura_total = 0.0
     largura_max = 0.0
@@ -118,25 +120,31 @@ def calcular_frete():
         if item.get('preco'):
             valor_seguro += float(item['preco']) * qtd
 
-    # Ajustes Mínimos dos Correios (SuperFrete usa Correios)
+    # Ajustes Mínimos
     altura_total = max(altura_total, 2)
     largura_max = max(largura_max, 11)
     comprimento_max = max(comprimento_max, 16)
-    peso_total = max(peso_total, 0.3) # Mínimo 300g
-    valor_seguro = max(valor_seguro, 25.00) # Valor declarado mínimo
+    peso_total = max(peso_total, 0.3)
+    valor_seguro = max(valor_seguro, 25.00)
 
-    # 2. Chama API SuperFrete
-    # IMPORTANTE: Verifique na documentação deles se os nomes dos campos (keys) são exatamente estes.
-    # A estrutura abaixo é a padrão do mercado (Melhor Envio/Kangu/Etc).
+    # 2. Configurações da API SuperFrete (Conforme Doc)
+    
+    # IMPORTANTE: A Doc pede User-Agent específico
+    headers = {
+        "Authorization": f"Bearer {SUPERFRETE_TOKEN}",
+        "User-Agent": "Leanttro Store (suporte@leanttro.com)", # <--- OBRIGATÓRIO SEGUNDO A DOC
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
     
     payload = {
         "from": { "postal_code": CEP_ORIGEM },
         "to": { "postal_code": cep_destino },
-        "services": "PAC,SEDEX,MINI", # Filtra o que você quer
+        "services": "PAC,SEDEX",
         "options": {
-            "own_hand": False, # Mão própria
-            "receipt": False,  # Aviso de recebimento
-            "insurance_value": valor_seguro # Valor declarado
+            "own_hand": False,
+            "receipt": False,
+            "insurance_value": valor_seguro
         },
         "package": {
             "height": int(altura_total),
@@ -145,54 +153,48 @@ def calcular_frete():
             "weight": peso_total
         }
     }
-    
-    # Se a doc pedir token no Header, costuma ser assim:
-    headers = {
-        "Authorization": f"Bearer {SUPERFRETE_TOKEN}",
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
 
     try:
-        # Timeout curto para não travar o site
-        response = requests.post(SUPERFRETE_URL, json=payload, headers=headers, timeout=8)
+        response = requests.post(SUPERFRETE_URL, json=payload, headers=headers, timeout=10)
         
         if response.status_code != 200:
-            print(f"Erro SuperFrete: {response.status_code} - {response.text}")
-            # Retorna lista vazia para o front tratar (mostrar 'Combine no Zap')
+            print(f"Erro SuperFrete ({response.status_code}): {response.text}")
             return jsonify([]), 500
 
         cotacoes = response.json()
         opcoes = []
 
-        # Adapta a resposta deles para o nosso padrão
-        # A resposta geralmente é uma lista [ {name: "PAC", price: 20.00...} ]
-        # Se a estrutura for diferente (ex: keys em portugues), ajuste abaixo.
-        
-        # Exemplo de tratamento genérico (Itera sobre a lista que eles devolverem)
-        lista_retorno = cotacoes if isinstance(cotacoes, list) else cotacoes.get('shipping_options', [])
+        # Tenta pegar a lista de diferentes formas (caso a doc varie)
+        lista_retorno = []
+        if isinstance(cotacoes, list):
+            lista_retorno = cotacoes
+        elif 'shipping_options' in cotacoes:
+            lista_retorno = cotacoes['shipping_options']
+        else:
+            # Tenta pegar direto se vier um objeto único
+            lista_retorno = [cotacoes]
 
         for c in lista_retorno:
-            # Pega o nome (PAC/Sedex) e o Preço
+            # Tratamento de erros específicos na resposta (ex: area de risco)
+            if 'error' in c and c['error']: continue
+
             nome_servico = c.get('name') or c.get('service', {}).get('name') or 'Entrega'
-            preco_api = c.get('price') or c.get('custom_price') or 0
-            prazo_api = c.get('delivery_time') or c.get('days') or 5
+            preco_api = c.get('price') or c.get('custom_price') or c.get('vlrFrete')
+            prazo_api = c.get('delivery_time') or c.get('days') or c.get('prazoEnt')
 
             if preco_api:
                 opcoes.append({
                     "servico": nome_servico,
-                    "transportadora": "Correios", # SuperFrete é basicamente Correios
-                    "preco": float(preco_api) + 4.00, # + R$ 4,00 (Embalagem)
-                    "prazo": int(prazo_api) + 2       # + 2 Dias (Sua logística)
+                    "transportadora": "Correios", 
+                    "preco": float(preco_api) + 4.00, # Margem Embalagem
+                    "prazo": int(prazo_api) + 2       # Margem Logística
                 })
 
-        # Ordena (Mais barato primeiro)
         opcoes.sort(key=lambda x: x['preco'])
-        
         return jsonify(opcoes)
 
     except Exception as e:
-        print(f"Exception Calculo Frete: {e}")
+        print(f"Exception Frete: {e}")
         return jsonify([]), 500
 
 if __name__ == '__main__':
