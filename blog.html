@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | {{ loja.nome }}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        :root { --primary: {{ loja.cor_primaria or '#dc2626' }}; }
+        
+        body { font-family: 'Poppins', sans-serif; }
+        .text-theme { color: var(--primary); }
+        .bg-theme { background-color: var(--primary); }
+        .border-theme { border-color: var(--primary); }
+        .hover\:bg-theme:hover { background-color: var(--primary); }
+        
+        /* Dropdown Categorias */
+        .category-dropdown:hover .dropdown-menu { display: block; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <a href="/" class="flex items-center gap-2">
+                    {% if loja.logo %}
+                    <img src="{{ directus_url }}/assets/{{ loja.logo }}" class="h-10 object-contain">
+                    {% else %}
+                    <span class="text-xl font-bold text-theme">{{ loja.nome }}</span>
+                    {% endif %}
+                </a>
+
+                <div class="hidden md:block relative category-dropdown cursor-pointer py-2">
+                    <div class="flex items-center gap-1 text-sm font-bold uppercase tracking-wider hover:text-theme">
+                        Categorias <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                    </div>
+                    <div class="dropdown-menu hidden absolute top-full left-0 w-56 bg-white shadow-xl border border-gray-100 z-50 rounded-b-lg">
+                        <ul class="py-2 text-sm text-gray-600">
+                            {% for cat in categorias %}
+                            <li class="px-5 py-2 hover:bg-gray-50 hover:text-theme transition-colors">
+                                <a href="/?cat={{ cat.id }}">{{ cat.nome }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 text-xs font-bold uppercase tracking-widest">
+                <a href="/" class="hover:text-theme transition-colors">Voltar para Loja</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="bg-gray-900 text-white py-20 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-theme opacity-10"></div>
+        <div class="container mx-auto px-4 relative z-10">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4">Nosso Blog</h1>
+            <p class="text-gray-400 max-w-xl mx-auto">Dicas, novidades e tendências selecionadas para você.</p>
+        </div>
+    </section>
+
+    <section class="py-16 container mx-auto px-4">
+        {% if posts|length == 0 %}
+        <div class="text-center py-20">
+            <i data-lucide="file-x" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
+            <p class="text-gray-500">Nenhum artigo publicado ainda.</p>
+            <a href="/" class="text-theme font-bold text-sm mt-4 inline-block hover:underline">Voltar para a Loja</a>
+        </div>
+        {% else %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for post in posts %}
+            <article class="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group">
+                <div class="aspect-video bg-gray-100 relative overflow-hidden">
+                    <img src="{{ post.capa }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 text-[10px] font-bold uppercase text-gray-800 tracking-widest rounded-sm">
+                        {{ post.data }}
+                    </div>
+                </div>
+                
+                <div class="p-6 flex flex-col flex-grow">
+                    <h2 class="font-bold text-xl text-gray-900 mb-3 group-hover:text-theme transition-colors leading-tight">
+                        {{ post.titulo }}
+                    </h2>
+                    <p class="text-sm text-gray-500 line-clamp-3 mb-6 flex-grow leading-relaxed">
+                        {{ post.resumo }}
+                    </p>
+                    
+                    <div class="pt-4 border-t border-gray-50 flex justify-between items-center">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Leanttro Blog</span>
+                        <button onclick="alert('Funcionalidade de leitura completa em breve!')" class="text-theme text-xs font-bold uppercase hover:underline">
+                            Ler Artigo &rarr;
+                        </button>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+
+    <footer class="bg-gray-50 py-12 border-t mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm text-gray-400">© 2026 {{ loja.nome }}. Todos os direitos reservados.</p>
+            <div class="flex justify-center gap-4 mt-4">
+                <a href="/" class="text-xs font-bold uppercase text-gray-400 hover:text-theme">Loja</a>
+                <a href="#" class="text-xs font-bold uppercase text-gray-400 hover:text-theme">Instagram</a>
+                <a href="#" class="text-xs font-bold uppercase text-gray-400 hover:text-theme">WhatsApp</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
