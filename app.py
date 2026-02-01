@@ -7,9 +7,7 @@ from dotenv import load_dotenv
 # Carrega variáveis de ambiente
 load_dotenv()
 
-# --- CORREÇÃO CRÍTICA AQUI ---
-# template_folder='.' diz pro Flask: "Os arquivos HTML estão aqui mesmo, junto comigo, não numa pasta separada"
-app = Flask(__name__, template_folder='.')
+app = Flask(__name__)
 
 # --- CONFIGURAÇÕES GERAIS ---
 DIRECTUS_URL = os.getenv("DIRECTUS_URL", "https://api2.leanttro.com")
@@ -116,7 +114,7 @@ def index():
                         variantes_tratadas.append({"nome": v.get('nome', 'Padrão'), "foto": v_img})
 
                 produtos.append({
-                    "id": str(p['id']), # Convertido para string para evitar erro 500
+                    "id": str(p['id']), # CORREÇÃO CRÍTICA: Convertido para string para evitar erro 500 no template
                     "nome": p['nome'],
                     "slug": p.get('slug'),
                     "preco": float(p['preco']) if p.get('preco') else None,
@@ -182,7 +180,7 @@ def produto(slug):
                     variantes_tratadas.append({"nome": v.get('nome', 'Padrão'), "foto": v_img})
 
             product_data = {
-                "id": str(p['id']), # Convertido para string
+                "id": str(p['id']), # CORREÇÃO CRÍTICA: ID como string
                 "nome": p['nome'],
                 "slug": p.get('slug'),
                 "preco": float(p['preco']) if p.get('preco') else None,
@@ -233,6 +231,7 @@ def blog_post(slug):
         else:
             return "Artigo não encontrado", 404
             
+        # CORREÇÃO CRÍTICA: Faltava esta linha, por isso dava erro 500
         return render_template('blog.html', loja=loja, categorias=categorias, post=post_data, directus_url=DIRECTUS_URL)
 
     except Exception as e:
