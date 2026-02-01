@@ -69,7 +69,7 @@
                 <i data-lucide="search" class="absolute right-0 top-2.5 w-4 h-4 text-gray-400"></i>
             </div>
             <div class="flex justify-start md:justify-center">
-                <a href="/" class="flex items-center gap-2">
+                <a href="/presentes/" class="flex items-center gap-2">
                     {% if loja.logo %}
                     <img src="{{ directus_url }}/assets/{{ loja.logo }}" alt="Logo" class="h-12 object-contain">
                     {% else %}
@@ -103,7 +103,7 @@
                     <ul class="py-2 text-sm text-gray-600">
                         {% for cat in categorias %}
                         <li class="px-6 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 hover:text-theme transition-colors">
-                            <a href="/?categoria={{ cat.id }}" class="block">{{ cat.nome }}</a>
+                            <a href="/presentes/?categoria={{ cat.id }}" class="block">{{ cat.nome }}</a>
                         </li>
                         {% else %}
                         <li class="px-6 py-3 text-xs text-gray-400">Nenhuma categoria</li>
@@ -112,7 +112,7 @@
                 </div>
             </div>
             <ul class="hidden md:flex items-center space-x-10 ml-12 font-bold uppercase text-[11px] tracking-[0.2em] text-gray-700">
-                <li><a href="/" class="hover:text-theme transition-colors">Início</a></li>
+                <li><a href="/presentes/" class="hover:text-theme transition-colors">Início</a></li>
                 <li><a href="#" class="hover:text-theme transition-colors">Lançamentos</a></li>
                 <li><a href="#" class="hover:text-theme transition-colors">Contato</a></li>
             </ul>
@@ -152,7 +152,7 @@
         <div class="text-center py-20 bg-gray-50 rounded-lg">
             <i data-lucide="package-open" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
             <p class="text-gray-500">Nenhum produto cadastrado nesta categoria.</p>
-            <a href="/" class="text-theme mt-2 block font-bold">Ver Todos</a>
+            <a href="/presentes/" class="text-theme mt-2 block font-bold">Ver Todos</a>
         </div>
         {% endif %}
 
@@ -176,12 +176,12 @@
                 </div>
                 {% endif %}
 
-                <a href="/produto/{{ p.slug }}" class="aspect-[4/5] bg-gray-50 relative overflow-hidden block">
+                <a href="/presentes/produto/{{ p.slug }}" class="aspect-[4/5] bg-gray-50 relative overflow-hidden block">
                     <img id="img-{{ p.id }}" src="{{ p.imagem }}" alt="{{ p.nome }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 </a>
 
                 <div class="p-4 flex flex-col flex-grow text-center">
-                    <a href="/produto/{{ p.slug }}" class="font-bold text-gray-800 text-sm md:text-base leading-tight mb-2 line-clamp-2 min-h-[2.5em] hover:text-theme transition-colors">
+                    <a href="/presentes/produto/{{ p.slug }}" class="font-bold text-gray-800 text-sm md:text-base leading-tight mb-2 line-clamp-2 min-h-[2.5em] hover:text-theme transition-colors">
                         {{ p.nome }}
                     </a>
                     
@@ -255,7 +255,7 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {% for post in posts %}
-                <a href="/blog/{{ post.slug }}" class="group cursor-pointer block">
+                <a href="/presentes/blog/{{ post.slug }}" class="group cursor-pointer block">
                     <div class="relative overflow-hidden aspect-[4/3] mb-4 bg-gray-100">
                         <img src="{{ post.capa }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                         <div class="absolute bottom-4 left-4 bg-white px-3 py-1 text-[10px] font-bold uppercase text-gray-800 tracking-widest">{{ post.data }}</div>
@@ -426,7 +426,8 @@
             if (cep.length !== 8) { div.innerHTML = '<span class="text-red-500 text-xs">CEP inválido.</span>'; return; }
             div.innerHTML = '<span class="text-gray-400 text-xs animate-pulse">Calculando...</span>';
             try {
-                const res = await axios.post('/api/calcular-frete', { cep, itens: cart.map(i => ({ classe_frete: i.classe_frete, qtd: i.qtd, preco: i.preco })) });
+                // ROTA AXIOS FIXADA /presentes/
+                const res = await axios.post('/presentes/api/calcular-frete', { cep, itens: cart.map(i => ({ classe_frete: i.classe_frete, qtd: i.qtd, preco: i.preco })) });
                 let html = '';
                 if (cep.startsWith('01') || cep.startsWith('02') || cep.startsWith('03') || cep.startsWith('04') || cep.startsWith('05')) {
                     html += `<label class="flex justify-between items-center p-2 border border-green-200 bg-green-50 rounded mb-1 cursor-pointer hover:bg-green-100 transition-colors"><div class="flex items-center gap-2"><input type="radio" name="frete" onchange="selectFrete('Uber Flash', 0)" class="text-green-600 focus:ring-green-500"><div class="text-xs"><b class="text-green-800">Uber Flash / Motoboy</b><br><span class="text-green-600">Expressa</span></div></div><span class="font-bold text-xs text-green-800">A Combinar</span></label>`;

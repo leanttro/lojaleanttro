@@ -83,8 +83,8 @@ def get_categorias(headers):
     except: pass
     return []
 
-# --- ROTA: HOME (INDEX) ---
-@app.route('/')
+# --- ROTA: HOME (INDEX) - CAMINHO FIXADO /presentes/ ---
+@app.route('/presentes/')
 def index():
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
     
@@ -151,8 +151,8 @@ def index():
 
     return render_template('index.html', loja=loja, categorias=categorias, produtos=produtos, posts=posts, directus_url=DIRECTUS_URL)
 
-# --- ROTA: PÁGINA DE PRODUTO INDIVIDUAL ---
-@app.route('/produto/<slug>')
+# --- ROTA: PÁGINA DE PRODUTO INDIVIDUAL - CAMINHO FIXADO /presentes/... ---
+@app.route('/presentes/produto/<slug>')
 def produto(slug):
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
     
@@ -197,8 +197,8 @@ def produto(slug):
 
     return render_template('produto.html', loja=loja, categorias=categorias, p=product_data, directus_url=DIRECTUS_URL)
 
-# --- ROTA: POST DO BLOG (Artigo Completo) ---
-@app.route('/blog/<slug>')
+# --- ROTA: POST DO BLOG - CAMINHO FIXADO /presentes/... ---
+@app.route('/presentes/blog/<slug>')
 def blog_post(slug):
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
     loja = get_loja_data(headers)
@@ -232,18 +232,13 @@ def blog_post(slug):
         print(f"Erro Post: {e}")
         return "Erro interno", 500
 
-    return render_template('blog.html', loja=loja, categorias=categorias, post=post_data, directus_url=DIRECTUS_URL)
-
 # --- ROTA: LISTA DO BLOG (Fallback) ---
-# Caso alguém clique no menu "Blog" e não tenha slug, redireciona para a home (onde tem a lista) ou exibe erro
-@app.route('/blog')
+@app.route('/presentes/blog')
 def blog_list():
-    # Como o usuário disse que "clica direto no index", a lista está lá. 
-    # Essa rota serve apenas para não quebrar links antigos.
     return index() 
 
-# --- ROTA: CÁLCULO DE FRETE ---
-@app.route('/api/calcular-frete', methods=['POST'])
+# --- ROTA: CÁLCULO DE FRETE - CAMINHO FIXADO /presentes/... ---
+@app.route('/presentes/api/calcular-frete', methods=['POST'])
 def calcular_frete():
     data = request.json
     cep_destino = data.get('cep')
@@ -315,4 +310,5 @@ def calcular_frete():
     except: return jsonify([]), 500
 
 if __name__ == '__main__':
+    # Roda em 0.0.0.0 para aceitar conexões externas do Docker
     app.run(debug=True, host='0.0.0.0', port=5000)

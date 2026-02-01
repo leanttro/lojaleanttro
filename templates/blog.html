@@ -39,7 +39,7 @@
     <nav class="bg-white shadow-sm sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center gap-6">
-                <a href="/" class="flex items-center gap-2">
+                <a href="/presentes/" class="flex items-center gap-2">
                     {% if loja.logo %}
                     <img src="{{ directus_url }}/assets/{{ loja.logo }}" class="h-10 object-contain">
                     {% else %}
@@ -55,7 +55,7 @@
                         <ul class="py-2 text-sm text-gray-600">
                             {% for cat in categorias %}
                             <li class="px-5 py-2 hover:bg-gray-50 hover:text-theme transition-colors">
-                                <a href="/?categoria={{ cat.id }}">{{ cat.nome }}</a>
+                                <a href="/presentes/?categoria={{ cat.id }}">{{ cat.nome }}</a>
                             </li>
                             {% endfor %}
                         </ul>
@@ -64,7 +64,7 @@
             </div>
 
             <div class="flex gap-4 text-xs font-bold uppercase tracking-widest">
-                <a href="/" class="hover:text-theme transition-colors flex items-center gap-1">
+                <a href="/presentes/" class="hover:text-theme transition-colors flex items-center gap-1">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para Loja
                 </a>
             </div>
@@ -102,7 +102,7 @@
             </div>
 
             <div class="mt-16 pt-8 border-t border-gray-200 flex justify-between items-center">
-                <a href="/" class="text-sm font-bold uppercase tracking-widest text-gray-400 hover:text-theme transition-colors">
+                <a href="/presentes/" class="text-sm font-bold uppercase tracking-widest text-gray-400 hover:text-theme transition-colors">
                     &larr; Voltar para Home
                 </a>
                 <div class="flex gap-4">
