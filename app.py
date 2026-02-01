@@ -114,7 +114,7 @@ def index():
                         variantes_tratadas.append({"nome": v.get('nome', 'Padrão'), "foto": v_img})
 
                 produtos.append({
-                    "id": p['id'],
+                    "id": str(p['id']), # CORREÇÃO CRÍTICA: Convertido para string para evitar erro 500 no template
                     "nome": p['nome'],
                     "slug": p.get('slug'),
                     "preco": float(p['preco']) if p.get('preco') else None,
@@ -180,7 +180,7 @@ def produto(slug):
                     variantes_tratadas.append({"nome": v.get('nome', 'Padrão'), "foto": v_img})
 
             product_data = {
-                "id": p['id'],
+                "id": str(p['id']), # CORREÇÃO CRÍTICA: ID como string
                 "nome": p['nome'],
                 "slug": p.get('slug'),
                 "preco": float(p['preco']) if p.get('preco') else None,
@@ -193,7 +193,9 @@ def produto(slug):
             }
         else:
             return "Produto não encontrado", 404
-    except: return "Erro ao carregar produto", 500
+    except Exception as e:
+        print(f"ERRO PRODUTO: {e}")
+        return f"Erro interno: {e}", 500
 
     return render_template('produto.html', loja=loja, categorias=categorias, p=product_data, directus_url=DIRECTUS_URL)
 
@@ -228,6 +230,10 @@ def blog_post(slug):
             }
         else:
             return "Artigo não encontrado", 404
+            
+        # CORREÇÃO CRÍTICA: Faltava esta linha, por isso dava erro 500
+        return render_template('blog.html', loja=loja, categorias=categorias, post=post_data, directus_url=DIRECTUS_URL)
+
     except Exception as e:
         print(f"Erro Post: {e}")
         return "Erro interno", 500

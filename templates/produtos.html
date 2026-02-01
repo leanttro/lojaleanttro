@@ -257,7 +257,7 @@
             if(cep.length!==8) return alert('CEP Inválido');
             div.innerHTML = 'Calculando...';
             try {
-                // ROTA AXIOS FIXADA /presentes/
+                // ROTA AXIOS CORRIGIDA COM /presentes/
                 const res = await axios.post('/presentes/api/calcular-frete', { cep, itens: cart });
                 let html = '';
                 res.data.forEach(opt => html += `<label class="flex justify-between p-2 border mb-1 cursor-pointer hover:bg-gray-50"><div class="flex gap-2"><input type="radio" name="frete" onchange="freteSelecionado={nome:'${opt.transportadora}',valor:${opt.preco}}"><div class="text-xs"><b>${opt.transportadora}</b><br>${opt.prazo} dias</div></div><b>R$ ${opt.preco.toFixed(2)}</b></label>`);
