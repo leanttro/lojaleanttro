@@ -18,10 +18,21 @@
         .hover\:bg-theme:hover { background-color: var(--primary); }
         .category-dropdown:hover .dropdown-menu { display: block; }
         .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-        /* Estilo da Descrição HTML */
-        .prose p { margin-bottom: 1em; color: #4b5563; }
-        .prose strong { color: #111827; }
-        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        
+        /* --- ESTILO AVANÇADO DA DESCRIÇÃO (DIRECTUS) --- */
+        .prose { color: #374151; line-height: 1.8; }
+        .prose p { margin-bottom: 1.2em; }
+        .prose strong, .prose b { color: #111827; font-weight: 700; }
+        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1.2em; }
+        .prose ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1.2em; }
+        .prose li { margin-bottom: 0.5em; }
+        .prose h1, .prose h2, .prose h3 { color: #111827; font-weight: 700; margin-top: 2em; margin-bottom: 0.8em; line-height: 1.3; }
+        .prose h1 { font-size: 1.5em; }
+        .prose h2 { font-size: 1.25em; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5em; }
+        .prose h3 { font-size: 1.1em; }
+        .prose blockquote { border-left: 4px solid var(--primary); padding-left: 1em; font-style: italic; background: #f9fafb; padding: 1em; margin-bottom: 1.2em; }
+        .prose img { max-width: 100%; border-radius: 8px; margin: 1.5em 0; }
+        .prose a { color: var(--primary); text-decoration: underline; font-weight: 600; }
     </style>
 </head>
 <body class="bg-white text-gray-800 flex flex-col min-h-screen">
@@ -71,16 +82,19 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
             
             <div class="space-y-4">
-                <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-100 relative">
+                <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-100 relative group">
                     <img id="main-image" src="{{ p.galeria[0] }}" class="w-full h-full object-cover transition-opacity duration-300">
                 </div>
-                <div class="flex gap-4 overflow-x-auto pb-2">
+                
+                {% if p.galeria|length > 1 %}
+                <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                     {% for img in p.galeria %}
-                    <button onclick="changeImage('{{ img }}')" class="w-20 h-20 rounded border-2 border-transparent hover:border-theme focus:border-theme overflow-hidden flex-shrink-0">
+                    <button onclick="changeImage('{{ img }}')" class="w-20 h-20 rounded border-2 border-transparent hover:border-theme focus:border-theme overflow-hidden flex-shrink-0 transition-all">
                         <img src="{{ img }}" class="w-full h-full object-cover">
                     </button>
                     {% endfor %}
                 </div>
+                {% endif %}
             </div>
 
             <div>
@@ -124,7 +138,7 @@
                 </div>
 
                 <div class="border-t border-gray-100 pt-8">
-                    <h3 class="font-bold text-lg mb-4">Descrição do Produto</h3>
+                    <h3 class="font-bold text-lg mb-4 text-gray-900">Detalhes do Produto</h3>
                     <div class="prose text-sm text-gray-600 leading-relaxed">
                         {{ p.descricao | safe }}
                     </div>
@@ -249,7 +263,7 @@
             setTimeout(() => btn.innerText = old, 2000);
         }
 
-        // Frete e Zap (Cópia simplificada)
+        // Frete e Zap
         let freteSelecionado = null;
         async function calcularFrete() {
             const cep = document.getElementById('cep-input').value.replace(/\D/g,'');
@@ -257,7 +271,7 @@
             if(cep.length!==8) return alert('CEP Inválido');
             div.innerHTML = 'Calculando...';
             try {
-                // ROTA AXIOS CORRIGIDA COM /presentes/
+                // Rota mantida conforme solicitado
                 const res = await axios.post('/presentes/api/calcular-frete', { cep, itens: cart });
                 let html = '';
                 res.data.forEach(opt => html += `<label class="flex justify-between p-2 border mb-1 cursor-pointer hover:bg-gray-50"><div class="flex gap-2"><input type="radio" name="frete" onchange="freteSelecionado={nome:'${opt.transportadora}',valor:${opt.preco}}"><div class="text-xs"><b>${opt.transportadora}</b><br>${opt.prazo} dias</div></div><b>R$ ${opt.preco.toFixed(2)}</b></label>`);
