@@ -19,20 +19,17 @@
         .category-dropdown:hover .dropdown-menu { display: block; }
         .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         
-        /* --- ESTILO AVANÇADO DA DESCRIÇÃO (DIRECTUS) --- */
-        .prose { color: #374151; line-height: 1.8; }
-        .prose p { margin-bottom: 1.2em; }
+        /* --- ESTILO DA DESCRIÇÃO (Ajustado para seu print) --- */
+        .prose { 
+            color: #374151; 
+            line-height: 1.8; 
+            /* O SEGREDO: pre-line faz o navegador respeitar os "Enters" do seu texto */
+            white-space: pre-line; 
+        }
         .prose strong, .prose b { color: #111827; font-weight: 700; }
-        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1.2em; }
-        .prose ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1.2em; }
-        .prose li { margin-bottom: 0.5em; }
-        .prose h1, .prose h2, .prose h3 { color: #111827; font-weight: 700; margin-top: 2em; margin-bottom: 0.8em; line-height: 1.3; }
-        .prose h1 { font-size: 1.5em; }
-        .prose h2 { font-size: 1.25em; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5em; }
-        .prose h3 { font-size: 1.1em; }
-        .prose blockquote { border-left: 4px solid var(--primary); padding-left: 1em; font-style: italic; background: #f9fafb; padding: 1em; margin-bottom: 1.2em; }
-        .prose img { max-width: 100%; border-radius: 8px; margin: 1.5em 0; }
-        .prose a { color: var(--primary); text-decoration: underline; font-weight: 600; }
+        .prose h1, .prose h2, .prose h3 { color: #111827; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; }
+        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .prose a { color: var(--primary); text-decoration: underline; }
     </style>
 </head>
 <body class="bg-white text-gray-800 flex flex-col min-h-screen">
@@ -89,8 +86,8 @@
                 {% if p.galeria|length > 1 %}
                 <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                     {% for img in p.galeria %}
-                    <button onclick="changeImage('{{ img }}')" class="w-20 h-20 rounded border-2 border-transparent hover:border-theme focus:border-theme overflow-hidden flex-shrink-0 transition-all">
-                        <img src="{{ img }}" class="w-full h-full object-cover">
+                    <button onclick="changeImage('{{ img }}')" class="w-20 h-20 rounded border-2 border-transparent hover:border-theme focus:border-theme overflow-hidden flex-shrink-0 transition-all cursor-pointer">
+                        <img src="{{ img }}" class="w-full h-full object-cover hover:opacity-80 transition-opacity">
                     </button>
                     {% endfor %}
                 </div>
@@ -128,7 +125,7 @@
                 {% endif %}
 
                 <div class="flex gap-4 mb-8">
-                    <button onclick='addToCartPage({{ p | tojson }})' class="flex-1 bg-gray-900 hover:bg-theme text-white font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-colors shadow-lg flex items-center justify-center gap-2">
+                    <button onclick='addToCartPage({{ p | tojson }})' class="flex-1 bg-gray-900 hover:bg-theme text-white font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-colors shadow-lg flex items-center justify-center gap-2 active:scale-95">
                         <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                         <span id="btn-add-text">Adicionar à Sacola</span>
                     </button>
@@ -181,7 +178,7 @@
         let selectedColor = null;
         let selectedPhoto = "{{ p.galeria[0] }}";
         
-        // --- GALERIA ---
+        // --- GALERIA DE FOTOS ---
         function changeImage(src) {
             document.getElementById('main-image').src = src;
         }
@@ -193,8 +190,8 @@
             changeImage(photo);
         }
 
-        // --- CARRINHO (Lógica Global Simplificada) ---
-        let cart = JSON.parse(localStorage.getItem('cart_v2') || '[]'); // Persistência simples
+        // --- LÓGICA DO CARRINHO ---
+        let cart = JSON.parse(localStorage.getItem('cart_v2') || '[]'); 
         const lojaPhone = "{{ loja.whatsapp }}";
 
         function saveCart() { localStorage.setItem('cart_v2', JSON.stringify(cart)); updateCartUI(); }
@@ -263,7 +260,7 @@
             setTimeout(() => btn.innerText = old, 2000);
         }
 
-        // Frete e Zap
+        // --- FRETE E WHATSAPP ---
         let freteSelecionado = null;
         async function calcularFrete() {
             const cep = document.getElementById('cep-input').value.replace(/\D/g,'');
@@ -271,7 +268,6 @@
             if(cep.length!==8) return alert('CEP Inválido');
             div.innerHTML = 'Calculando...';
             try {
-                // Rota mantida conforme solicitado
                 const res = await axios.post('/presentes/api/calcular-frete', { cep, itens: cart });
                 let html = '';
                 res.data.forEach(opt => html += `<label class="flex justify-between p-2 border mb-1 cursor-pointer hover:bg-gray-50"><div class="flex gap-2"><input type="radio" name="frete" onchange="freteSelecionado={nome:'${opt.transportadora}',valor:${opt.preco}}"><div class="text-xs"><b>${opt.transportadora}</b><br>${opt.prazo} dias</div></div><b>R$ ${opt.preco.toFixed(2)}</b></label>`);
@@ -289,7 +285,6 @@
             window.open(`https://wa.me/${lojaPhone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // Init
         updateCartUI();
     </script>
 </body>
