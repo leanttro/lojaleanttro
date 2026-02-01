@@ -19,11 +19,10 @@
         .category-dropdown:hover .dropdown-menu { display: block; }
         .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         
-        /* --- ESTILO DA DESCRIÇÃO (Ajustado para seu print) --- */
+        /* --- ESTILO DA DESCRIÇÃO (Mantido conforme solicitado) --- */
         .prose { 
             color: #374151; 
             line-height: 1.8; 
-            /* O SEGREDO: pre-line faz o navegador respeitar os "Enters" do seu texto */
             white-space: pre-line; 
         }
         .prose strong, .prose b { color: #111827; font-weight: 700; }
@@ -101,7 +100,16 @@
                 <div class="mb-6">
                     {% if p.preco %}
                     <span class="text-4xl font-bold text-theme">R$ {{ "%.2f"|format(p.preco)|replace('.', ',') }}</span>
-                    <span class="text-sm text-gray-500 block mt-1">em até 12x no cartão ou Pix</span>
+                    <span class="text-sm text-gray-800 font-bold block mt-1">à vista no Pix</span>
+                    
+                    <div class="mt-2 pt-2 border-t border-gray-100">
+                        <span class="text-sm text-gray-500">
+                            ou <strong class="text-gray-700">R$ {{ "%.2f"|format(p.preco * 1.03)|replace('.', ',') }}</strong> em até 
+                            <strong class="text-gray-900">3x</strong> de 
+                            <strong class="text-theme">R$ {{ "%.2f"|format((p.preco * 1.03) / 3)|replace('.', ',') }}</strong>
+                            <span class="text-xs text-gray-400 block">(cartão com acréscimo)</span>
+                        </span>
+                    </div>
                     {% else %}
                     <span class="text-2xl font-bold text-gray-400 uppercase">Preço sob consulta</span>
                     {% endif %}
