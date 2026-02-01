@@ -3,48 +3,43 @@ import requests
 import os
 from dotenv import load_dotenv
 
-# Carrega variáveis de ambiente (Dokploy/Contabo injetam isso)
+# Carrega variáveis de ambiente
 load_dotenv()
 
 app = Flask(__name__)
 
-# --- CONFIGURAÇÕES DO AMBIENTE ---
-# Se não tiver ENV definido, usa valores vazios para não quebrar no start, mas vai dar erro na requisição
+# --- CONFIGURAÇÕES ---
 DIRECTUS_URL = os.getenv("DIRECTUS_URL", "https://api2.leanttro.com")
 DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN", "") 
-MELHOR_ENVIO_TOKEN = os.getenv("MELHOR_ENVIO_TOKEN", "")
 LOJA_ID = os.getenv("LOJA_ID", "") 
 
-# --- TABELA DE MEDIDAS (TRADUÇÃO DA "CLASSE DE FRETE") ---
-# Mapeia o Dropdown do Directus para pesos/medidas reais do Melhor Envio
+# CONFIGURAÇÕES SUPERFRETE
+SUPERFRETE_TOKEN = os.getenv("SUPERFRETE_TOKEN", "")
+SUPERFRETE_URL = os.getenv("SUPERFRETE_URL", "https://api.superfrete.com/api/v1/calculator")
+CEP_ORIGEM = "01026000" # CEP da 25 de Março (Genérico)
+
+# --- TABELA DE MEDIDAS (Simulação) ---
 DIMENSOES = {
-    "Pequeno": {"height": 4, "width": 12, "length": 16, "weight": 0.3}, # Envelope/Caixa P (Kits Bijus)
-    "Medio":   {"height": 10, "width": 20, "length": 20, "weight": 1.0}, # Kits maiores (Garrafas/Kits Misto)
-    "Grande":  {"height": 20, "width": 30, "length": 30, "weight": 3.0}  # Caixas grandes
+    "Pequeno": {"height": 4, "width": 12, "length": 16, "weight": 0.3}, # Envelope
+    "Medio":   {"height": 10, "width": 20, "length": 20, "weight": 1.0}, # Caixa P
+    "Grande":  {"height": 20, "width": 30, "length": 30, "weight": 3.0}  # Caixa G
 }
 
 @app.route('/')
 def index():
-    # Headers para autenticação no Directus (se necessário)
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
     
-    # 1. Busca Dados da Loja (Configurações, Logo, Cores)
+    # 1. Busca Loja
     try:
-        # Tenta buscar pelo ID específico da loja
         if LOJA_ID:
             resp_loja = requests.get(f"{DIRECTUS_URL}/items/lojas/{LOJA_ID}", headers=headers)
-            if resp_loja.status_code == 200:
-                loja = resp_loja.json().get('data', {})
-            else:
-                loja = {"nome": "Minha Loja", "cor_primaria": "#dc2626"} # Fallback
+            loja = resp_loja.json().get('data', {}) if resp_loja.status_code == 200 else {}
         else:
-            loja = {"nome": "Configure o LOJA_ID", "cor_primaria": "#dc2626"}
-    except Exception as e:
-        print(f"Erro ao buscar loja: {e}")
+            loja = {"nome": "Loja Demo", "cor_primaria": "#dc2626"}
+    except:
         loja = {"nome": "Erro Loja", "cor_primaria": "#dc2626"}
 
-    # 2. Busca Produtos (Filtrando por Loja e Status Publicado)
-    # A query filtra: loja_id IGUAL ao definido E status IGUAL a published
+    # 2. Busca Produtos
     produtos = []
     try:
         query_url = f"{DIRECTUS_URL}/items/produtos?filter[loja_id][_eq]={LOJA_ID}&filter[status][_eq]=published"
@@ -54,56 +49,56 @@ def index():
             produtos_raw = resp_prod.json().get('data', [])
             
             for p in produtos_raw:
-                # Tratamento da Imagem Principal
+                # Tratamento Inteligente de Imagem (URL ou ID)
+                img_raw = p.get('imagem_destaque') or p.get('imagem1')
                 img_url = "https://via.placeholder.com/400?text=Sem+Foto"
-                if p.get('imagem_destaque'):
-                    img_url = f"{DIRECTUS_URL}/assets/{p['imagem_destaque']}"
-                elif p.get('imagem1'): # Fallback para imagem antiga
-                    img_url = f"{DIRECTUS_URL}/assets/{p['imagem1']}"
+                
+                if img_raw:
+                    if img_raw.startswith('http'):
+                        img_url = img_raw
+                    else:
+                        img_url = f"{DIRECTUS_URL}/assets/{img_raw}"
 
-                # Tratamento das Variantes (Repeater JSON)
-                # O Directus retorna uma lista de objetos [{nome: "Azul", foto: "ID"}]
+                # Variantes (Cores)
                 variantes_tratadas = []
                 if p.get('variantes'):
                     for v in p['variantes']:
-                        # URL da foto da variante
-                        v_img = f"{DIRECTUS_URL}/assets/{v['foto']}" if v.get('foto') else img_url
+                        foto_val = v.get('foto')
+                        v_img = img_url # Fallback
+                        if foto_val:
+                            v_img = foto_val if foto_val.startswith('http') else f"{DIRECTUS_URL}/assets/{foto_val}"
+                        
                         variantes_tratadas.append({
                             "nome": v.get('nome', 'Padrão'),
                             "foto": v_img
                         })
 
-                # Montagem do Objeto Final para o Template
                 produtos.append({
                     "id": p['id'],
                     "nome": p['nome'],
-                    "preco": float(p['preco']) if p.get('preco') else None, # Garante float ou None
+                    "preco": float(p['preco']) if p.get('preco') else None,
                     "imagem": img_url,
-                    "origem": p.get('origem', 'XBZ'), # XBZ, Mauro, Estoque Proprio
-                    "urgencia": p.get('status_urgencia', 'Normal'), # Gatilho de escassez
+                    "origem": p.get('origem', 'XBZ'),
+                    "urgencia": p.get('status_urgencia', 'Normal'),
                     "classe_frete": p.get('classe_frete', 'Pequeno'),
                     "variantes": variantes_tratadas,
                     "descricao": p.get('descricao', '')
                 })
-        else:
-            print(f"Erro Directus Produtos: {resp_prod.text}")
-
     except Exception as e:
         print(f"Erro ao buscar produtos: {e}")
 
-    # Renderiza o HTML passando as variáveis
     return render_template('index.html', loja=loja, produtos=produtos, directus_url=DIRECTUS_URL)
 
 @app.route('/api/calcular-frete', methods=['POST'])
 def calcular_frete():
     data = request.json
     cep_destino = data.get('cep')
-    itens_carrinho = data.get('itens') # Lista vinda do JS
+    itens_carrinho = data.get('itens')
 
     if not cep_destino or not itens_carrinho:
         return jsonify({"erro": "Dados inválidos"}), 400
 
-    # 1. Simulação de Cubagem (Empilhamento simples)
+    # 1. Consolida os volumes (Soma pesos para economizar)
     peso_total = 0.0
     altura_total = 0.0
     largura_max = 0.0
@@ -113,7 +108,6 @@ def calcular_frete():
     for item in itens_carrinho:
         classe = item.get('classe_frete', 'Pequeno')
         qtd = int(item.get('qtd', 1))
-        # Pega dimensões da tabela, se não achar usa Pequeno
         medidas = DIMENSOES.get(classe, DIMENSOES['Pequeno'])
         
         peso_total += medidas['weight'] * qtd
@@ -121,77 +115,85 @@ def calcular_frete():
         largura_max = max(largura_max, medidas['width'])
         comprimento_max = max(comprimento_max, medidas['length'])
         
-        # Valor do seguro (importante para transportadora)
-        preco_item = item.get('preco', 0)
-        if preco_item:
-            valor_seguro += float(preco_item) * qtd
+        if item.get('preco'):
+            valor_seguro += float(item['preco']) * qtd
 
-    # Limites mínimos dos Correios/Jadlog
-    altura_total = max(altura_total, 4)
-    largura_max = max(largura_max, 10)
-    comprimento_max = max(comprimento_max, 15)
-    valor_seguro = max(valor_seguro, 25.00) # Mínimo de declaração geralmente é R$ 25
+    # Ajustes Mínimos dos Correios (SuperFrete usa Correios)
+    altura_total = max(altura_total, 2)
+    largura_max = max(largura_max, 11)
+    comprimento_max = max(comprimento_max, 16)
+    peso_total = max(peso_total, 0.3) # Mínimo 300g
+    valor_seguro = max(valor_seguro, 25.00) # Valor declarado mínimo
 
-    # 2. Chamada à API Melhor Envio
-    url = "https://melhorenvio.com.br/api/v2/me/shipment/calculate"
+    # 2. Chama API SuperFrete
+    # IMPORTANTE: Verifique na documentação deles se os nomes dos campos (keys) são exatamente estes.
+    # A estrutura abaixo é a padrão do mercado (Melhor Envio/Kangu/Etc).
+    
+    payload = {
+        "from": { "postal_code": CEP_ORIGEM },
+        "to": { "postal_code": cep_destino },
+        "services": "PAC,SEDEX,MINI", # Filtra o que você quer
+        "options": {
+            "own_hand": False, # Mão própria
+            "receipt": False,  # Aviso de recebimento
+            "insurance_value": valor_seguro # Valor declarado
+        },
+        "package": {
+            "height": int(altura_total),
+            "width": int(largura_max),
+            "length": int(comprimento_max),
+            "weight": peso_total
+        }
+    }
+    
+    # Se a doc pedir token no Header, costuma ser assim:
     headers = {
-        "Authorization": f"Bearer {MELHOR_ENVIO_TOKEN}",
+        "Authorization": f"Bearer {SUPERFRETE_TOKEN}",
         "Content-Type": "application/json",
         "Accept": "application/json"
     }
-    
-    # Payload oficial do Melhor Envio
-    payload = {
-        "from": {"postal_code": "01026000"}, # CEP Genérico da 25 de Março
-        "to": {"postal_code": cep_destino},
-        "products": [{
-            "id": "pacote-consolidado",
-            "width": int(largura_max),
-            "height": int(altura_total),
-            "length": int(comprimento_max),
-            "weight": peso_total,
-            "insurance_value": valor_seguro,
-            "quantity": 1
-        }],
-        "services": "1,2,3,4,17" # IDs comuns (Sedex, PAC, Jadlog...) - Opcional filtrar na request
-    }
 
     try:
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        # Timeout curto para não travar o site
+        response = requests.post(SUPERFRETE_URL, json=payload, headers=headers, timeout=8)
         
         if response.status_code != 200:
-            print("Erro API Melhor Envio:", response.text)
+            print(f"Erro SuperFrete: {response.status_code} - {response.text}")
+            # Retorna lista vazia para o front tratar (mostrar 'Combine no Zap')
             return jsonify([]), 500
-            
+
         cotacoes = response.json()
-        opcoes_filtradas = []
+        opcoes = []
+
+        # Adapta a resposta deles para o nosso padrão
+        # A resposta geralmente é uma lista [ {name: "PAC", price: 20.00...} ]
+        # Se a estrutura for diferente (ex: keys em portugues), ajuste abaixo.
         
-        # Filtra e formata para o Frontend
-        for c in cotacoes:
-            if 'error' in c: continue # Pula erros
-            
-            # Pega apenas Correios e Jadlog (mais confiáveis para dropshipping)
-            company = c.get('company', {}).get('name', '')
-            
-            if company in ['Correios', 'Jadlog', 'Loggi']:
-                opcoes_filtradas.append({
-                    "servico": c['name'],
-                    "transportadora": company,
-                    # Adiciona R$ 4,00 de margem para caixa/fita
-                    "preco": float(c['price']) + 4.00, 
-                    # Adiciona 2 dias de margem (Logística Seg/Qua)
-                    "prazo": c['delivery_time'] + 2 
+        # Exemplo de tratamento genérico (Itera sobre a lista que eles devolverem)
+        lista_retorno = cotacoes if isinstance(cotacoes, list) else cotacoes.get('shipping_options', [])
+
+        for c in lista_retorno:
+            # Pega o nome (PAC/Sedex) e o Preço
+            nome_servico = c.get('name') or c.get('service', {}).get('name') or 'Entrega'
+            preco_api = c.get('price') or c.get('custom_price') or 0
+            prazo_api = c.get('delivery_time') or c.get('days') or 5
+
+            if preco_api:
+                opcoes.append({
+                    "servico": nome_servico,
+                    "transportadora": "Correios", # SuperFrete é basicamente Correios
+                    "preco": float(preco_api) + 4.00, # + R$ 4,00 (Embalagem)
+                    "prazo": int(prazo_api) + 2       # + 2 Dias (Sua logística)
                 })
+
+        # Ordena (Mais barato primeiro)
+        opcoes.sort(key=lambda x: x['preco'])
         
-        # Ordena pelo preço menor
-        opcoes_filtradas.sort(key=lambda x: x['preco'])
-        
-        return jsonify(opcoes_filtradas)
-        
+        return jsonify(opcoes)
+
     except Exception as e:
-        print(f"Exception no Frete: {e}")
+        print(f"Exception Calculo Frete: {e}")
         return jsonify([]), 500
 
 if __name__ == '__main__':
-    # Rodar localmente
     app.run(debug=True, host='0.0.0.0', port=5000)
