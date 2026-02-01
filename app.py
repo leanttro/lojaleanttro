@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import requests
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 
 # Carrega variáveis de ambiente
@@ -8,71 +9,118 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# --- CONFIGURAÇÕES GERAIS ---
+# --- CONFIGURAÇÕES ---
 DIRECTUS_URL = os.getenv("DIRECTUS_URL", "https://api2.leanttro.com")
 DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN", "") 
 LOJA_ID = os.getenv("LOJA_ID", "") 
 
-# --- CONFIGURAÇÕES SUPERFRETE (Doc Oficial) ---
+# --- CONFIGURAÇÕES SUPERFRETE ---
 SUPERFRETE_TOKEN = os.getenv("SUPERFRETE_TOKEN", "")
-# URL Padrão (Se for produção, remova o 'sandbox.' da URL no .env)
-# Pela sua doc: https://sandbox.superfrete.com/api/v0/calculator
 SUPERFRETE_URL = os.getenv("SUPERFRETE_URL", "https://api.superfrete.com/api/v0/calculator")
-CEP_ORIGEM = "01026000" # CEP da 25 de Março
+CEP_ORIGEM = "01026000" # 25 de Março
 
-# --- TABELA DE MEDIDAS (Simulação) ---
+# --- TABELA DE MEDIDAS ---
 DIMENSOES = {
-    "Pequeno": {"height": 4, "width": 12, "length": 16, "weight": 0.3}, # Envelope
-    "Medio":   {"height": 10, "width": 20, "length": 20, "weight": 1.0}, # Caixa P
-    "Grande":  {"height": 20, "width": 30, "length": 30, "weight": 3.0}  # Caixa G
+    "Pequeno": {"height": 4, "width": 12, "length": 16, "weight": 0.3},
+    "Medio":   {"height": 10, "width": 20, "length": 20, "weight": 1.0},
+    "Grande":  {"height": 20, "width": 30, "length": 30, "weight": 3.0}
 }
+
+# --- FUNÇÃO AUXILIAR DE IMAGEM ---
+def get_img_url(image_id_or_url):
+    """Trata ID do Directus ou URL externa"""
+    if not image_id_or_url:
+        return "https://via.placeholder.com/800x400?text=Sem+Imagem"
+    
+    if image_id_or_url.startswith('http'):
+        return image_id_or_url
+    
+    return f"{DIRECTUS_URL}/assets/{image_id_or_url}"
 
 @app.route('/')
 def index():
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
     
-    # 1. Busca Loja
+    # 1. BUSCA DADOS DA LOJA (Incluindo Banners)
+    loja = {}
     try:
         if LOJA_ID:
-            resp_loja = requests.get(f"{DIRECTUS_URL}/items/lojas/{LOJA_ID}", headers=headers)
-            loja = resp_loja.json().get('data', {}) if resp_loja.status_code == 200 else {}
-        else:
-            loja = {"nome": "Loja Demo", "cor_primaria": "#dc2626"}
-    except:
-        loja = {"nome": "Erro Loja", "cor_primaria": "#dc2626"}
+            resp_loja = requests.get(f"{DIRECTUS_URL}/items/lojas/{LOJA_ID}?fields=*.*", headers=headers)
+            if resp_loja.status_code == 200:
+                data = resp_loja.json().get('data', {})
+                loja = {
+                    "nome": data.get('nome', 'Minha Loja'),
+                    "logo": data.get('logo'),
+                    "cor_primaria": data.get('cor_primaria', '#dc2626'),
+                    "whatsapp": data.get('whatsapp_comercial') or '5511999999999',
+                    # Banners Principais
+                    "banner1": get_img_url(data.get('bannerprincipal1')),
+                    "link1": data.get('linkbannerprincipal1', '#'),
+                    "banner2": get_img_url(data.get('bannerprincipal2')) if data.get('bannerprincipal2') else None,
+                    "link2": data.get('linkbannerprincipal2', '#'),
+                    # Banners Menores
+                    "bannermenor1": get_img_url(data.get('bannermenor1')),
+                    "bannermenor2": get_img_url(data.get('bannermenor2'))
+                }
+    except Exception as e:
+        print(f"Erro Loja: {e}")
+        loja = {"nome": "Erro Carregamento", "cor_primaria": "#dc2626"}
 
-    # 2. Busca Produtos
+    # 2. BUSCA CATEGORIAS
+    categorias = []
+    try:
+        url_cat = f"{DIRECTUS_URL}/items/categorias?filter[loja_id][_eq]={LOJA_ID}&filter[status][_eq]=published"
+        resp_cat = requests.get(url_cat, headers=headers)
+        if resp_cat.status_code == 200:
+            categorias = resp_cat.json().get('data', [])
+    except Exception as e:
+        print(f"Erro Categorias: {e}")
+
+    # 3. BUSCA POSTS (BLOG) - Limite 3
+    posts = []
+    try:
+        # Pega os últimos 3 posts publicados
+        url_posts = f"{DIRECTUS_URL}/items/posts?filter[loja_id][_eq]={LOJA_ID}&filter[status][_eq]=published&limit=3&sort=-date_created"
+        resp_posts = requests.get(url_posts, headers=headers)
+        if resp_posts.status_code == 200:
+            raw_posts = resp_posts.json().get('data', [])
+            for p in raw_posts:
+                data_fmt = "Recente"
+                if p.get('date_created'):
+                    try:
+                        dt = datetime.fromisoformat(p['date_created'].replace('Z', '+00:00'))
+                        data_fmt = dt.strftime('%d.%m.%Y')
+                    except: pass
+
+                posts.append({
+                    "titulo": p.get('titulo'),
+                    "resumo": p.get('resumo'),
+                    "capa": get_img_url(p.get('capa')),
+                    "slug": p.get('slug'),
+                    "data": data_fmt
+                })
+    except Exception as e:
+        print(f"Erro Posts: {e}")
+
+    # 4. BUSCA PRODUTOS
     produtos = []
     try:
-        query_url = f"{DIRECTUS_URL}/items/produtos?filter[loja_id][_eq]={LOJA_ID}&filter[status][_eq]=published"
-        resp_prod = requests.get(query_url, headers=headers)
+        url_prod = f"{DIRECTUS_URL}/items/produtos?filter[loja_id][_eq]={LOJA_ID}&filter[status][_eq]=published"
+        resp_prod = requests.get(url_prod, headers=headers)
         
         if resp_prod.status_code == 200:
             produtos_raw = resp_prod.json().get('data', [])
             
             for p in produtos_raw:
-                # Tratamento de Imagem
-                img_raw = p.get('imagem_destaque') or p.get('imagem1')
-                img_url = "https://via.placeholder.com/400?text=Sem+Foto"
-                
-                if img_raw:
-                    if img_raw.startswith('http'):
-                        img_url = img_raw
-                    else:
-                        img_url = f"{DIRECTUS_URL}/assets/{img_raw}"
+                img_url = get_img_url(p.get('imagem_destaque') or p.get('imagem1'))
 
-                # Variantes (Cores)
+                # Variantes
                 variantes_tratadas = []
                 if p.get('variantes'):
                     for v in p['variantes']:
-                        foto_val = v.get('foto')
-                        v_img = img_url # Fallback
-                        if foto_val:
-                            v_img = foto_val if foto_val.startswith('http') else f"{DIRECTUS_URL}/assets/{foto_val}"
-                        
                         variantes_tratadas.append({
                             "nome": v.get('nome', 'Padrão'),
-                            "foto": v_img
+                            "foto": get_img_url(v.get('foto')) if v.get('foto') else img_url
                         })
 
                 produtos.append({
@@ -87,9 +135,9 @@ def index():
                     "descricao": p.get('descricao', '')
                 })
     except Exception as e:
-        print(f"Erro ao buscar produtos: {e}")
+        print(f"Erro Produtos: {e}")
 
-    return render_template('index.html', loja=loja, produtos=produtos, directus_url=DIRECTUS_URL)
+    return render_template('index.html', loja=loja, categorias=categorias, posts=posts, produtos=produtos, directus_url=DIRECTUS_URL)
 
 @app.route('/api/calcular-frete', methods=['POST'])
 def calcular_frete():
@@ -100,7 +148,6 @@ def calcular_frete():
     if not cep_destino or not itens_carrinho:
         return jsonify({"erro": "Dados inválidos"}), 400
 
-    # 1. Consolida volumes
     peso_total = 0.0
     altura_total = 0.0
     largura_max = 0.0
@@ -120,19 +167,17 @@ def calcular_frete():
         if item.get('preco'):
             valor_seguro += float(item['preco']) * qtd
 
-    # Ajustes Mínimos
+    # Ajustes SuperFrete
     altura_total = max(altura_total, 2)
     largura_max = max(largura_max, 11)
     comprimento_max = max(comprimento_max, 16)
     peso_total = max(peso_total, 0.3)
     valor_seguro = max(valor_seguro, 25.00)
 
-    # 2. Configurações da API SuperFrete (Conforme Doc)
-    
-    # IMPORTANTE: A Doc pede User-Agent específico
+    # DOC: User-Agent é obrigatório
     headers = {
         "Authorization": f"Bearer {SUPERFRETE_TOKEN}",
-        "User-Agent": "Leanttro Store (suporte@leanttro.com)", # <--- OBRIGATÓRIO SEGUNDO A DOC
+        "User-Agent": "Leanttro Store (suporte@leanttro.com)",
         "Content-Type": "application/json",
         "Accept": "application/json"
     }
@@ -164,37 +209,35 @@ def calcular_frete():
         cotacoes = response.json()
         opcoes = []
 
-        # Tenta pegar a lista de diferentes formas (caso a doc varie)
+        # Tratamento flexível de resposta (lista ou objeto)
         lista_retorno = []
         if isinstance(cotacoes, list):
             lista_retorno = cotacoes
         elif 'shipping_options' in cotacoes:
             lista_retorno = cotacoes['shipping_options']
         else:
-            # Tenta pegar direto se vier um objeto único
             lista_retorno = [cotacoes]
 
         for c in lista_retorno:
-            # Tratamento de erros específicos na resposta (ex: area de risco)
             if 'error' in c and c['error']: continue
 
-            nome_servico = c.get('name') or c.get('service', {}).get('name') or 'Entrega'
-            preco_api = c.get('price') or c.get('custom_price') or c.get('vlrFrete')
-            prazo_api = c.get('delivery_time') or c.get('days') or c.get('prazoEnt')
+            nome = c.get('name') or c.get('service', {}).get('name') or 'Entrega'
+            preco = c.get('price') or c.get('custom_price') or c.get('vlrFrete')
+            prazo = c.get('delivery_time') or c.get('days') or c.get('prazoEnt')
 
-            if preco_api:
+            if preco:
                 opcoes.append({
-                    "servico": nome_servico,
+                    "servico": nome,
                     "transportadora": "Correios", 
-                    "preco": float(preco_api) + 4.00, # Margem Embalagem
-                    "prazo": int(prazo_api) + 2       # Margem Logística
+                    "preco": float(preco) + 4.00,
+                    "prazo": int(prazo) + 2
                 })
 
         opcoes.sort(key=lambda x: x['preco'])
         return jsonify(opcoes)
 
     except Exception as e:
-        print(f"Exception Frete: {e}")
+        print(f"Erro Frete: {e}")
         return jsonify([]), 500
 
 if __name__ == '__main__':
