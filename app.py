@@ -38,6 +38,10 @@ def get_img_url(image_id_or_url):
     if not image_id_or_url:
         return "https://via.placeholder.com/800x400?text=Sem+Imagem"
     
+    if isinstance(image_id_or_url, dict):
+        # Se vier um objeto de arquivo (devido ao fields=*.*), pega o ID
+        return f"{DIRECTUS_URL}/assets/{image_id_or_url.get('id')}"
+    
     if image_id_or_url.startswith('http'):
         return image_id_or_url
     
@@ -56,12 +60,19 @@ def index():
             resp_loja = requests.get(f"{DIRECTUS_URL}/items/lojas/{LOJA_ID}?fields=*.*", headers=headers)
             if resp_loja.status_code == 200:
                 data = resp_loja.json().get('data', {})
+                
+                # CORREÇÃO DO LOGO: Se vier dicionário, extrai só o ID para o HTML usar
+                logo_raw = data.get('logo')
+                logo_final = logo_raw
+                if isinstance(logo_raw, dict):
+                    logo_final = logo_raw.get('id')
+                
                 loja = {
                     "nome": data.get('nome', 'Minha Loja'),
-                    "logo": data.get('logo'),
+                    "logo": logo_final, # Agora garantimos que é o ID (string)
                     "cor_primaria": data.get('cor_primaria', '#dc2626'),
                     "whatsapp": data.get('whatsapp_comercial') or '5511999999999',
-                    # Banners Principais
+                    # Banners Principais (Usam helper pois podem ser URL externa)
                     "banner1": get_img_url(data.get('bannerprincipal1')),
                     "link1": data.get('linkbannerprincipal1', '#'),
                     "banner2": get_img_url(data.get('bannerprincipal2')) if data.get('bannerprincipal2') else None,
@@ -161,9 +172,16 @@ def blog():
             resp_loja = requests.get(f"{DIRECTUS_URL}/items/lojas/{LOJA_ID}?fields=*.*", headers=headers)
             if resp_loja.status_code == 200:
                 data = resp_loja.json().get('data', {})
+                
+                # CORREÇÃO DO LOGO TAMBÉM NO BLOG
+                logo_raw = data.get('logo')
+                logo_final = logo_raw
+                if isinstance(logo_raw, dict):
+                    logo_final = logo_raw.get('id')
+                
                 loja = {
                     "nome": data.get('nome', 'Blog'),
-                    "logo": data.get('logo'),
+                    "logo": logo_final,
                     "cor_primaria": data.get('cor_primaria', '#dc2626'),
                     "whatsapp": data.get('whatsapp_comercial') or '5511999999999'
                 }
