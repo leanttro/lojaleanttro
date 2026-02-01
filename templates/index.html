@@ -114,7 +114,6 @@
             <ul class="hidden md:flex items-center space-x-10 ml-12 font-bold uppercase text-[11px] tracking-[0.2em] text-gray-700">
                 <li><a href="/" class="hover:text-theme transition-colors">Início</a></li>
                 <li><a href="#" class="hover:text-theme transition-colors">Lançamentos</a></li>
-                <li><a href="/blog" class="hover:text-theme transition-colors">Blog</a></li>
                 <li><a href="#" class="hover:text-theme transition-colors">Contato</a></li>
             </ul>
         </div>
@@ -161,6 +160,14 @@
             {% for p in produtos %}
             <div class="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col relative" id="card-{{ p.id }}">
                 
+                <div class="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start">
+                    {% if p.origem == 'Estoque Proprio' %}
+                    <span class="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
+                        <i data-lucide="zap" class="w-3 h-3"></i> PRONTA ENTREGA
+                    </span>
+                    {% endif %}
+                </div>
+
                 {% if p.urgencia == 'Poucas Unidades' or p.urgencia == 'Alta Procura' %}
                 <div class="absolute top-2 right-2 z-10">
                     <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm animate-urgent border border-red-500">
@@ -248,15 +255,15 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {% for post in posts %}
-                <div class="group cursor-pointer">
+                <a href="/blog/{{ post.slug }}" class="group cursor-pointer block">
                     <div class="relative overflow-hidden aspect-[4/3] mb-4 bg-gray-100">
                         <img src="{{ post.capa }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                         <div class="absolute bottom-4 left-4 bg-white px-3 py-1 text-[10px] font-bold uppercase text-gray-800 tracking-widest">{{ post.data }}</div>
                     </div>
                     <h3 class="font-bold text-base text-gray-900 mb-2 group-hover:text-theme transition-colors line-clamp-2">{{ post.titulo }}</h3>
                     <p class="text-xs text-gray-500 line-clamp-3 leading-relaxed">{{ post.resumo }}</p>
-                    <a href="/blog" class="text-[10px] font-bold uppercase tracking-widest mt-3 inline-block border-b border-gray-300 pb-0.5 group-hover:border-theme group-hover:text-theme transition-colors">Ler Mais</a>
-                </div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest mt-3 inline-block border-b border-gray-300 pb-0.5 group-hover:border-theme group-hover:text-theme transition-colors">Ler Mais</span>
+                </a>
                 {% endfor %}
             </div>
         </div>
@@ -422,14 +429,14 @@
                 const res = await axios.post('/api/calcular-frete', { cep, itens: cart.map(i => ({ classe_frete: i.classe_frete, qtd: i.qtd, preco: i.preco })) });
                 let html = '';
                 if (cep.startsWith('01') || cep.startsWith('02') || cep.startsWith('03') || cep.startsWith('04') || cep.startsWith('05')) {
-                    html += `<label class="flex justify-between items-center p-2 border border-green-200 bg-green-50 rounded mb-1 cursor-pointer hover:bg-green-100"><div class="flex items-center gap-2"><input type="radio" name="frete" onchange="selectFrete('Uber Flash', 0)" class="text-green-600"><div class="text-xs"><b class="text-green-800">Uber Flash</b><br><span class="text-green-600">Expressa</span></div></div><span class="font-bold text-xs text-green-800">A Combinar</span></label>`;
+                    html += `<label class="flex justify-between items-center p-2 border border-green-200 bg-green-50 rounded mb-1 cursor-pointer hover:bg-green-100 transition-colors"><div class="flex items-center gap-2"><input type="radio" name="frete" onchange="selectFrete('Uber Flash', 0)" class="text-green-600 focus:ring-green-500"><div class="text-xs"><b class="text-green-800">Uber Flash / Motoboy</b><br><span class="text-green-600">Expressa</span></div></div><span class="font-bold text-xs text-green-800">A Combinar</span></label>`;
                 }
                 if (res.data.length === 0 && html === '') { div.innerHTML = '<span class="text-xs text-gray-500">Nenhuma opção disponível.</span>'; return; }
                 res.data.forEach(opt => {
-                    html += `<label class="flex justify-between items-center p-2 border border-gray-200 rounded mb-1 cursor-pointer hover:bg-gray-50"><div class="flex items-center gap-2"><input type="radio" name="frete" onchange="selectFrete('${opt.transportadora} - ${opt.servico}', ${opt.preco})" class="text-gray-800"><div class="text-xs text-gray-600"><b class="text-gray-800">${opt.transportadora}</b><br>${opt.prazo} dias úteis</div></div><span class="font-bold text-xs text-gray-800">R$ ${opt.preco.toFixed(2).replace('.',',')}</span></label>`;
+                    html += `<label class="flex justify-between items-center p-2 border border-gray-200 rounded mb-1 cursor-pointer hover:bg-gray-50 transition-colors"><div class="flex items-center gap-2"><input type="radio" name="frete" onchange="selectFrete('${opt.transportadora} - ${opt.servico}', ${opt.preco})" class="text-gray-800 focus:ring-gray-800"><div class="text-xs text-gray-600"><b class="text-gray-800">${opt.transportadora}</b><br>${opt.prazo} dias úteis</div></div><span class="font-bold text-xs text-gray-800">R$ ${opt.preco.toFixed(2).replace('.',',')}</span></label>`;
                 });
                 div.innerHTML = html;
-            } catch (e) { div.innerHTML = '<span class="text-red-500 text-xs">Erro ao calcular.</span>'; }
+            } catch (e) { console.error(e); div.innerHTML = '<span class="text-red-500 text-xs">Erro ao calcular. Tente mais tarde.</span>'; }
         }
 
         function selectFrete(nome, valor) { freteSelecionado = { nome, valor }; }
@@ -438,21 +445,41 @@
             if (cart.length === 0) return alert("Adicione produtos primeiro!");
             let msg = `👋 Olá! Vim do site e quero fechar meu pedido:\n\n`;
             let total = 0;
+            
+            // Lógica unificada sem mostrar fornecedores
             cart.forEach(i => {
                 msg += `— ${i.qtd}x ${i.nome_exibicao}\n`;
-                if(i.preco) { msg += `   R$ ${(i.preco * i.qtd).toFixed(2)}\n`; total += i.preco * i.qtd; }
-                else { msg += `   (Sob Consulta)\n`; }
+                if(i.preco) {
+                    msg += `   R$ ${(i.preco * i.qtd).toFixed(2)}\n`;
+                    total += i.preco * i.qtd;
+                } else {
+                    msg += `   (Sob Consulta)\n`;
+                }
             });
-            msg += `--------------------------------\n*💰 Subtotal:* R$ ${total.toFixed(2).replace('.', ',')}\n`;
+            
+            msg += `--------------------------------\n`;
+            msg += `*💰 Subtotal:* R$ ${total.toFixed(2).replace('.', ',')}\n`;
+            
             if (freteSelecionado) {
                 msg += `*🚚 Frete:* ${freteSelecionado.nome}\n`;
-                if(freteSelecionado.valor > 0) msg += `*Valor Frete:* R$ ${freteSelecionado.valor.toFixed(2).replace('.', ',')}\n*TOTAL FINAL:* R$ ${(total + freteSelecionado.valor).toFixed(2).replace('.', ',')}\n`;
-                else msg += `*Valor Frete:* A Combinar\n*TOTAL FINAL:* R$ ${total.toFixed(2).replace('.', ',')} (+ Frete)\n`;
-            } else { msg += `*🚚 Frete:* A calcular/combinar\n`; }
+                if(freteSelecionado.valor > 0) {
+                    msg += `*Valor Frete:* R$ ${freteSelecionado.valor.toFixed(2).replace('.', ',')}\n`;
+                    msg += `*TOTAL FINAL:* R$ ${(total + freteSelecionado.valor).toFixed(2).replace('.', ',')}\n`;
+                } else {
+                    msg += `*Valor Frete:* A Combinar\n`;
+                    msg += `*TOTAL FINAL:* R$ ${total.toFixed(2).replace('.', ',')} (+ Frete)\n`;
+                }
+            } else {
+                msg += `*🚚 Frete:* A calcular/combinar\n`;
+            }
+
             const cep = document.getElementById('cep-input').value;
             if(cep) msg += `📍 CEP: ${cep}\n`;
+
             msg += `\nAguardo a chave Pix!`;
-            window.open(`https://wa.me/${lojaPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+
+            const url = `https://wa.me/${lojaPhone}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
         }
     </script>
 </body>
