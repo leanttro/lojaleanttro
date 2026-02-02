@@ -26,6 +26,7 @@
         .hover\:bg-theme:hover { background-color: var(--primary); }
         .ring-theme { --tw-ring-color: var(--primary); }
         
+        /* Hover funciona apenas no Desktop */
         @media (min-width: 768px) {
             .category-dropdown:hover .dropdown-menu { display: block; }
         }
@@ -41,14 +42,16 @@
         }
         .animate-urgent { animation: pulse-red 2s infinite; }
         .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .color-dot { transition: all 0.2s; }
+        .color-dot:hover { transform: scale(1.1); }
         @media(max-width: 768px) { .slider-container { height: 300px; } }
     </style>
 </head>
 <body class="bg-white text-gray-800 flex flex-col min-h-screen">
 
     <div class="border-b border-gray-100 py-2 text-[10px] uppercase tracking-wider text-gray-500 bg-white">
-        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-center md:justify-between items-center gap-2 md:gap-0 text-center md:text-left">
-            <div class="flex items-center space-x-4">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-0 text-center md:text-left">
+            <div class="flex items-center space-x-4 justify-center md:justify-start">
                 <div class="flex items-center space-x-1 cursor-pointer">
                     <img src="https://flagcdn.com/w20/br.png" width="14" alt="Brasil">
                     <span>Português</span>
@@ -60,7 +63,7 @@
                     <span>WhatsApp: <span class="font-semibold">{{ loja.whatsapp }}</span></span>
                 </div>
             </div>
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 justify-center md:justify-end">
                 <span class="text-[9px] font-bold text-theme">ENVIOS PARA TODO BRASIL</span>
             </div>
         </div>
@@ -77,15 +80,11 @@
             </div>
             
             <div class="flex justify-center order-1 md:order-2">
-                <a href="/presentes/" class="flex items-center gap-2 justify-center">
+                <a href="/presentes/" class="flex items-center gap-2">
                     {% if loja.logo %}
-                        <img src="{{ directus_url }}/assets/{{ loja.logo }}" 
-                             alt="{{ loja.nome }}" 
-                             class="h-14 object-contain"
-                             onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
-                        <span class="hidden text-3xl font-bold text-theme tracking-tighter">{{ loja.nome }}</span>
+                    <img src="{{ directus_url }}/assets/{{ loja.logo }}" alt="Logo" class="h-16 object-contain">
                     {% else %}
-                        <span class="text-3xl font-bold text-theme tracking-tighter">{{ loja.nome }}</span>
+                    <span class="text-3xl font-bold text-theme tracking-tighter">{{ loja.nome }}</span>
                     {% endif %}
                 </a>
             </div>
@@ -105,8 +104,7 @@
     </div>
 
     <nav class="border-y border-gray-100 sticky top-0 bg-white z-40 shadow-sm">
-        <div class="container mx-auto px-4 flex items-center justify-center">
-            
+        <div class="container mx-auto px-4 flex items-center justify-center md:justify-start">
             <div class="relative category-dropdown border-r border-gray-100 py-4 pr-8 md:pr-12 cursor-pointer hover:text-theme transition-colors" onclick="toggleMobileCat()">
                 <div class="flex items-center space-x-2 font-bold uppercase text-xs tracking-widest">
                     <i data-lucide="menu" class="w-4 h-4"></i>
@@ -115,11 +113,7 @@
                 </div>
                 <div id="cat-menu-list" class="dropdown-menu hidden absolute top-full left-0 w-64 bg-white shadow-2xl border border-gray-100 z-50">
                     <ul class="py-2 text-sm text-gray-600">
-                        <li class="px-6 py-3 hover:bg-gray-50 border-b border-gray-50 hover:text-theme transition-colors bg-gray-50/50">
-                            <a href="/presentes/" class="block font-bold uppercase text-xs tracking-wider">Todos os Produtos</a>
-                        </li>
-                        
-                        {% for cat in categorias|sort(attribute='nome') %}
+                        {% for cat in categorias %}
                         <li class="px-6 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 hover:text-theme transition-colors">
                             <a href="/presentes/?categoria={{ cat.id }}" class="block">{{ cat.nome }}</a>
                         </li>
@@ -129,7 +123,6 @@
                     </ul>
                 </div>
             </div>
-
             <ul class="hidden md:flex items-center space-x-10 ml-12 font-bold uppercase text-[11px] tracking-[0.2em] text-gray-700">
                 <li><a href="/presentes/" class="hover:text-theme transition-colors">Início</a></li>
                 <li><a href="#" class="hover:text-theme transition-colors">Lançamentos</a></li>
@@ -354,7 +347,7 @@
         let freteSelecionado = null;
         const lojaPhone = "{{ loja.whatsapp }}";
 
-        // Função para alternar o menu de categorias no Mobile
+        // CORREÇÃO MOBILE: Função para alternar o menu de categorias
         function toggleMobileCat() {
             const menu = document.getElementById('cat-menu-list');
             menu.classList.toggle('hidden');
@@ -389,7 +382,7 @@
             }
             cart.forEach((item, i) => {
                 total += (item.preco || 0) * item.qtd;
-                // Preço no carrinho também em ROXO
+                // Preço no item do carrinho em ROXO
                 container.innerHTML += `
                     <div class="flex gap-4 border-b border-gray-100 pb-4 last:border-0 animate-[fadeIn_0.2s_ease-out]">
                         <img src="${item.imagem}" class="w-16 h-16 object-cover rounded-md bg-gray-100 border border-gray-200">
@@ -452,6 +445,7 @@
             if (cep.length !== 8) { div.innerHTML = '<span class="text-red-500 text-xs">CEP inválido.</span>'; return; }
             div.innerHTML = '<span class="text-gray-400 text-xs animate-pulse">Calculando...</span>';
             try {
+                // ROTA AXIOS FIXADA /presentes/
                 const res = await axios.post('/presentes/api/calcular-frete', { cep, itens: cart.map(i => ({ classe_frete: i.classe_frete, qtd: i.qtd, preco: i.preco })) });
                 let html = '';
                 if (cep.startsWith('01') || cep.startsWith('02') || cep.startsWith('03') || cep.startsWith('04') || cep.startsWith('05')) {
