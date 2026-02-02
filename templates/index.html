@@ -31,7 +31,7 @@
             .category-dropdown:hover .dropdown-menu { display: block; }
         }
 
-        /* Estilos do Slider Hero */
+        /* Estilos do Slider */
         .slider-container { position: relative; overflow: hidden; height: 350px; }
         @media (min-width: 768px) { .slider-container { height: 500px; } }
 
@@ -49,7 +49,6 @@
         }
         .slide.active { opacity: 1; z-index: 10; }
         
-        /* Estilos Gerais */
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
@@ -330,16 +329,16 @@
 
     <section class="py-16 bg-gray-50 border-t border-gray-100">
         <div class="container mx-auto px-4">
-            <h2 class="text-2xl md:text-3xl font-serif-display font-bold text-gray-900 mb-8 text-center md:text-left">
+            <h2 class="text-2xl md:text-3xl font-serif-display font-bold text-gray-900 mb-8 text-left">
                 Todos os <span class="italic text-secondary">Produtos</span>
             </h2>
 
             <div class="flex gap-3 overflow-x-auto pb-6 scrollbar-hide mb-4">
-                <button onclick="filterCarousel('all')" class="filter-btn active whitespace-nowrap bg-gray-900 text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
+                <button onclick="filterCarousel('all')" class="filter-btn active whitespace-nowrap bg-gray-900 text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors" id="filter-btn-all">
                     Todos
                 </button>
                 {% for cat in categorias %}
-                <button onclick="filterCarousel('{{ cat.id }}')" class="filter-btn whitespace-nowrap bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:border-theme hover:text-theme transition-colors">
+                <button onclick="filterCarousel('{{ cat.id }}')" class="filter-btn whitespace-nowrap bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:border-theme hover:text-theme transition-colors" id="filter-btn-{{ cat.id }}">
                     {{ cat.nome }}
                 </button>
                 {% endfor %}
@@ -763,32 +762,40 @@
             });
         }
 
-        // Funções do Carrossel de Todos os Produtos
+        // Funções do Carrossel de Todos os Produtos (CORRIGIDO)
         function filterCarousel(catId) {
             const items = document.querySelectorAll('.product-carousel-item');
             const btns = document.querySelectorAll('.filter-btn');
             
-            // Atualiza botões
+            // 1. Atualizar visual dos botões
             btns.forEach(btn => {
-                if(btn.innerText === "TODOS" && catId === 'all') {
-                    btn.classList.add('bg-gray-900', 'text-white');
+                // Remove estilo ativo de todos
+                btn.classList.remove('bg-gray-900', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-600');
+                
+                // Se for o botão clicado, adiciona estilo ativo
+                // Verificamos pelo ID ou se é o botão "Todos"
+                if(btn.id === 'filter-btn-' + catId) {
                     btn.classList.remove('bg-white', 'text-gray-600');
-                } else if(btn.innerText !== "TODOS" && catId !== 'all') {
-                    // Lógica simplificada: apenas marca visualmente
-                    btn.classList.remove('bg-gray-900', 'text-white');
-                    btn.classList.add('bg-white', 'text-gray-600');
+                    btn.classList.add('bg-gray-900', 'text-white');
                 }
-                // (Para uma UX perfeita precisaria identificar qual botão foi clicado exatamente, mas funcionalmente o filtro abaixo resolve)
             });
 
-            // Filtra itens
+            // 2. Filtrar os itens
             items.forEach(item => {
-                if(catId === 'all' || item.dataset.category === catId) {
+                const itemCat = String(item.dataset.category); // Força string
+                const targetCat = String(catId); // Força string
+
+                if (targetCat === 'all' || itemCat === targetCat) {
                     item.classList.remove('hidden');
                 } else {
                     item.classList.add('hidden');
                 }
             });
+            
+            // Resetar o scroll para o início quando filtrar
+            const container = document.getElementById('all-products-list');
+            if(container) container.scrollLeft = 0;
         }
 
         function scrollProductCarousel(direction) {
