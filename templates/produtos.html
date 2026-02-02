@@ -59,8 +59,8 @@
             
             <div class="relative w-full max-w-xs mx-auto md:mx-0 order-2 md:order-1 flex justify-center md:justify-start">
                 <div class="relative w-full">
-                    <input type="text" placeholder="Buscar produtos..." class="w-full border-b border-gray-200 py-2 pr-8 text-sm focus:outline-none focus:border-theme text-center md:text-left">
-                    <i data-lucide="search" class="absolute right-0 top-2.5 w-4 h-4 text-gray-400"></i>
+                    <input type="text" id="search-input" onkeyup="handleSearch(event)" placeholder="Buscar produtos..." class="w-full border-b border-gray-200 py-2 pr-8 text-sm focus:outline-none focus:border-theme text-center md:text-left">
+                    <i data-lucide="search" class="absolute right-0 top-2.5 w-4 h-4 text-gray-400 cursor-pointer" onclick="goToCatalog()"></i>
                 </div>
             </div>
             
@@ -283,10 +283,9 @@
         let selectedColor = null;
         let selectedPhoto = "{{ p.galeria[0] }}";
         
-        // Configuração do Telefone (ATUALIZADO)
         const lojaPhone = "5511913324827";
 
-        // Lógica da Barra de Anúncios Rotativa
+        // Lógica da Barra de Anúncios
         const announcements = [
             "ENTREGAMOS PARA TODO BRASIL",
             "FRETE GRÁTIS P/ SUL E SUDESTE ACIMA DE R$ 250,00",
@@ -306,6 +305,19 @@
             }, 3500);
         }
         
+        // --- FUNÇÃO DE BUSCA PARA PÁGINA DE DETALHES ---
+        function handleSearch(event) {
+            // Como estamos na página do produto, não podemos filtrar aqui.
+            // Redirecionamos para o catálogo (home) ao dar ENTER
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                goToCatalog();
+            }
+        }
+
+        function goToCatalog() {
+            window.location.href = '/presentes/';
+        }
+
         // --- GALERIA DE FOTOS ---
         function changeImage(src) {
             document.getElementById('main-image').src = src;
@@ -318,7 +330,7 @@
             changeImage(photo);
         }
 
-        // --- LÓGICA DO MENU MOBILE (IGUAL INDEX) ---
+        // --- LÓGICA DO MENU MOBILE ---
         function toggleMobileCat() {
             const menu = document.getElementById('cat-menu-list');
             const overlay = document.getElementById('cat-menu-overlay');
@@ -327,10 +339,7 @@
         }
 
         // --- LÓGICA DO CARRINHO ---
-        let cart = []; // Variável global para consistência com o index, ou carregar do storage se precisar persistência entre páginas
-        // Para manter simples e igual ao index que reseta no load se não tiver storage logic complexo:
-        // Mas o index usava array vazio. Se quiser persistência, ideal usar localStorage.
-        // Vou usar localStorage aqui para não perder o item ao navegar.
+        let cart = []; 
         try {
              cart = JSON.parse(localStorage.getItem('cart_v2') || '[]');
         } catch(e) { cart = []; }
@@ -353,7 +362,7 @@
             const container = document.getElementById('cart-items');
             const totalEl = document.getElementById('cart-total');
             const countEl = document.getElementById('cart-count');
-            const headerTotalEl = document.getElementById('cart-total-header'); // Se existir no header
+            const headerTotalEl = document.getElementById('cart-total-header');
 
             const totalQtd = cart.reduce((acc, i) => acc + i.qtd, 0);
             if(countEl) {
@@ -361,7 +370,6 @@
                 countEl.classList.toggle('hidden', totalQtd === 0);
             }
             if(headerTotalEl) {
-                // Calcular total para o header se necessário
                 let t = cart.reduce((acc, i) => acc + (i.preco||0)*i.qtd, 0);
                 headerTotalEl.innerText = "R$ " + t.toFixed(2).replace('.', ',');
             }
@@ -427,7 +435,6 @@
             try {
                 const res = await axios.post('/presentes/api/calcular-frete', { cep, itens: cart });
                 let html = '';
-                // Lógica de Uber Flash igual Index
                 if (cep.startsWith('01') || cep.startsWith('02') || cep.startsWith('03') || cep.startsWith('04') || cep.startsWith('05')) {
                     html += `<label class="flex justify-between items-center p-2 border border-green-200 bg-green-50 rounded mb-1 cursor-pointer hover:bg-green-100 transition-colors"><div class="flex items-center gap-2"><input type="radio" name="frete" onchange="freteSelecionado={nome:'Uber Flash',valor:0}"><div class="text-xs"><b class="text-green-800">Uber Flash / Motoboy</b><br><span class="text-green-600">Expressa</span></div></div><span class="font-bold text-xs text-green-800">A Combinar</span></label>`;
                 }
@@ -438,10 +445,6 @@
                 });
                 div.innerHTML = html;
             } catch { div.innerHTML = '<span class="text-red-500 text-xs">Erro ao calcular.</span>'; }
-        }
-
-        function finalizeNoZap() { // Mantendo o nome antigo se houver dependência, ou atualizando para finalizarNoZap
-             finalizarNoZap();
         }
 
         function finalizarNoZap() {
