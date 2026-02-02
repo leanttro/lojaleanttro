@@ -41,16 +41,9 @@
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
 
     <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
-            <div class="flex items-center gap-6 justify-center w-full md:w-auto">
-                <a href="/presentes/" class="flex items-center gap-2">
-                    {% if loja.logo %}
-                    <img src="{{ directus_url }}/assets/{{ loja.logo }}" class="h-10 object-contain">
-                    {% else %}
-                    <span class="text-xl font-bold text-theme">{{ loja.nome }}</span>
-                    {% endif %}
-                </a>
-
+        <div class="container mx-auto px-4 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            
+            <div class="flex items-center gap-6 justify-center md:justify-start order-2 md:order-1">
                 <div class="hidden md:block relative category-dropdown cursor-pointer py-2">
                     <div class="flex items-center gap-1 text-sm font-bold uppercase tracking-wider hover:text-theme">
                         Categorias <i data-lucide="chevron-down" class="w-3 h-3"></i>
@@ -67,7 +60,17 @@
                 </div>
             </div>
 
-            <div class="flex gap-4 text-xs font-bold uppercase tracking-widest justify-center w-full md:w-auto">
+            <div class="flex justify-center order-1 md:order-2">
+                <a href="/presentes/" class="flex items-center gap-2">
+                    {% if loja.logo %}
+                    <img src="{{ directus_url }}/assets/{{ loja.logo }}" class="h-10 object-contain">
+                    {% else %}
+                    <span class="text-xl font-bold text-theme">{{ loja.nome }}</span>
+                    {% endif %}
+                </a>
+            </div>
+
+            <div class="flex gap-4 text-xs font-bold uppercase tracking-widest justify-center md:justify-end w-full md:w-auto order-3 md:order-3">
                 <a href="/presentes/" class="hover:text-theme transition-colors flex items-center gap-1">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para Loja
                 </a>
