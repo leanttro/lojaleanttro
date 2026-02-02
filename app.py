@@ -3,6 +3,7 @@ import requests
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+import traceback
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -114,7 +115,7 @@ def index():
                         variantes_tratadas.append({"nome": v.get('nome', 'Padrão'), "foto": v_img})
 
                 produtos.append({
-                    "id": str(p['id']), # CORREÇÃO CRÍTICA: Convertido para string para evitar erro 500 no template
+                    "id": str(p['id']), 
                     "nome": p['nome'],
                     "slug": p.get('slug'),
                     "preco": float(p['preco']) if p.get('preco') else None,
@@ -180,7 +181,7 @@ def produto(slug):
                     variantes_tratadas.append({"nome": v.get('nome', 'Padrão'), "foto": v_img})
 
             product_data = {
-                "id": str(p['id']), # CORREÇÃO CRÍTICA: ID como string
+                "id": str(p['id']),
                 "nome": p['nome'],
                 "slug": p.get('slug'),
                 "preco": float(p['preco']) if p.get('preco') else None,
@@ -231,7 +232,6 @@ def blog_post(slug):
         else:
             return "Artigo não encontrado", 404
             
-        # CORREÇÃO CRÍTICA: Faltava esta linha, por isso dava erro 500
         return render_template('blog.html', loja=loja, categorias=categorias, post=post_data, directus_url=DIRECTUS_URL)
 
     except Exception as e:
@@ -243,7 +243,7 @@ def blog_post(slug):
 def blog_list():
     return index() 
 
-# --- ROTA: CÁLCULO DE FRETE - CAMINHO FIXADO /presentes/... ---
+# --- ROTA: CÁLCULO DE FRETE (DEBUG ATUALIZADO) ---
 @app.route('/presentes/api/calcular-frete', methods=['POST'])
 def calcular_frete():
     data = request.json
@@ -259,6 +259,7 @@ def calcular_frete():
     comprimento_max = 0.0
     valor_seguro = 0.0
 
+    # Cálculo das dimensões baseado na sua lógica
     for item in itens_carrinho:
         classe = item.get('classe_frete', 'Pequeno')
         qtd = int(item.get('qtd', 1))
@@ -269,6 +270,7 @@ def calcular_frete():
         comprimento_max = max(comprimento_max, medidas['length'])
         if item.get('preco'): valor_seguro += float(item['preco']) * qtd
 
+    # Ajustes mínimos dos Correios/Superfrete
     altura_total = max(altura_total, 2)
     largura_max = max(largura_max, 11)
     comprimento_max = max(comprimento_max, 16)
@@ -286,19 +288,49 @@ def calcular_frete():
         "from": { "postal_code": CEP_ORIGEM },
         "to": { "postal_code": cep_destino },
         "services": "PAC,SEDEX",
-        "options": { "own_hand": False, "receipt": False, "insurance_value": valor_seguro },
-        "package": { "height": int(altura_total), "width": int(largura_max), "length": int(comprimento_max), "weight": peso_total }
+        "options": { 
+            "own_hand": False, 
+            "receipt": False, 
+            "insurance_value": valor_seguro 
+        },
+        "package": { 
+            "height": int(altura_total), 
+            "width": int(largura_max), 
+            "length": int(comprimento_max), 
+            "weight": peso_total 
+        }
     }
 
     try:
+        # LOG PARA DEBUG NO TERMINAL DO DOCKER
+        print(f"--- ENVIANDO PARA SUPERFRETE ({SUPERFRETE_URL}) ---")
+        print(f"Payload: {payload}")
+        
         response = requests.post(SUPERFRETE_URL, json=payload, headers=headers, timeout=10)
-        if response.status_code != 200: return jsonify([]), 500
+        
+        if response.status_code != 200:
+            print(f"--- ERRO SUPERFRETE: {response.status_code} ---")
+            print(f"Body: {response.text}") # AQUI VAI APARECER O MOTIVO REAL
+            # Retorna o erro real para o frontend em vez de forçar 500
+            return jsonify({"erro": "Erro na API de Frete", "detalhes": response.text}), response.status_code
+
         cotacoes = response.json()
         opcoes = []
-        lista_retorno = cotacoes if isinstance(cotacoes, list) else cotacoes.get('shipping_options', [cotacoes])
+        
+        # Compatibilidade para API V1 ou V0
+        lista_retorno = []
+        if isinstance(cotacoes, list):
+            lista_retorno = cotacoes
+        elif isinstance(cotacoes, dict) and 'shipping_options' in cotacoes:
+            lista_retorno = cotacoes['shipping_options']
+        elif isinstance(cotacoes, dict):
+            # Caso raro de objeto único
+            lista_retorno = [cotacoes]
 
         for c in lista_retorno:
-            if 'error' in c and c['error']: continue
+            if isinstance(c, dict) and ('error' in c and c['error']): continue
+            
+            # Tratamento flexível de chaves
             nome = c.get('name') or c.get('service', {}).get('name') or 'Entrega'
             preco = c.get('price') or c.get('custom_price') or c.get('vlrFrete')
             prazo = c.get('delivery_time') or c.get('days') or c.get('prazoEnt')
@@ -307,13 +339,17 @@ def calcular_frete():
                 opcoes.append({
                     "servico": nome,
                     "transportadora": "Correios", 
-                    "preco": float(preco) + 4.00,
-                    "prazo": int(prazo) + 2
+                    "preco": float(preco) + 4.00, # Taxa de manuseio
+                    "prazo": int(prazo) + 2       # Margem de segurança
                 })
 
         opcoes.sort(key=lambda x: x['preco'])
         return jsonify(opcoes)
-    except: return jsonify([]), 500
+
+    except Exception as e:
+        print(f"--- ERRO INTERNO PYTHON: {e} ---")
+        traceback.print_exc() # Mostra a linha exata do erro no terminal
+        return jsonify({"erro": "Erro interno no servidor", "msg": str(e)}), 500
 
 if __name__ == '__main__':
     # Roda em 0.0.0.0 para aceitar conexões externas do Docker
