@@ -163,6 +163,13 @@
 
     <section class="slider-container w-full font-family: 'Poppins', sans-serif;">
         
+        <button onclick="changeSlide(-1)" class="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-20 bg-black/20 hover:bg-black/50 text-white p-2 md:p-3 rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/20 group">
+            <i data-lucide="chevron-left" class="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform"></i>
+        </button>
+        <button onclick="changeSlide(1)" class="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-20 bg-black/20 hover:bg-black/50 text-white p-2 md:p-3 rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/20 group">
+            <i data-lucide="chevron-right" class="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform"></i>
+        </button>
+
         <div class="slide active">
             <div class="absolute inset-0">
                 {% if loja.banner1 %}
