@@ -173,15 +173,6 @@
 
     <section class="slider-container w-full font-family: 'Poppins', sans-serif;">
         
-        <div class="absolute bottom-4 left-0 w-full flex justify-center items-center gap-6 z-20 md:hidden">
-            <button onclick="changeSlide(-1)" class="bg-black/30 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 hover:bg-black/50 active:scale-95 transition-all">
-                <i data-lucide="chevron-left" class="w-5 h-5"></i>
-            </button>
-            <button onclick="changeSlide(1)" class="bg-black/30 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 hover:bg-black/50 active:scale-95 transition-all">
-                <i data-lucide="chevron-right" class="w-5 h-5"></i>
-            </button>
-        </div>
-
         <button onclick="changeSlide(-1)" class="hidden md:block absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-black/20 hover:bg-black/50 text-white p-3 rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/20 group">
             <i data-lucide="chevron-left" class="w-8 h-8 group-hover:scale-110 transition-transform"></i>
         </button>
@@ -242,6 +233,15 @@
         </div>
 
     </section>
+
+    <div class="w-full flex justify-center items-center gap-8 py-5 bg-gray-50 md:hidden border-b border-gray-100">
+        <button onclick="changeSlide(-1)" class="bg-white text-gray-800 p-4 rounded-full border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all shadow-md">
+            <i data-lucide="chevron-left" class="w-6 h-6"></i>
+        </button>
+        <button onclick="changeSlide(1)" class="bg-white text-gray-800 p-4 rounded-full border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all shadow-md">
+            <i data-lucide="chevron-right" class="w-6 h-6"></i>
+        </button>
+    </div>
 
     <section class="py-16 text-center">
         <div class="container mx-auto px-4">
@@ -769,22 +769,21 @@
             
             // 1. Atualizar visual dos botões
             btns.forEach(btn => {
-                // Remove estilo ativo de todos
                 btn.classList.remove('bg-gray-900', 'text-white');
                 btn.classList.add('bg-white', 'text-gray-600');
                 
-                // Se for o botão clicado, adiciona estilo ativo
-                // Verificamos pelo ID ou se é o botão "Todos"
                 if(btn.id === 'filter-btn-' + catId) {
                     btn.classList.remove('bg-white', 'text-gray-600');
                     btn.classList.add('bg-gray-900', 'text-white');
                 }
             });
 
-            // 2. Filtrar os itens
+            // 2. Filtrar os itens (LÓGICA REFORÇADA)
+            const targetCat = String(catId).trim();
+
             items.forEach(item => {
-                const itemCat = String(item.dataset.category); // Força string
-                const targetCat = String(catId); // Força string
+                // Pega o valor do atributo data-category e garante string
+                const itemCat = String(item.getAttribute('data-category') || '').trim();
 
                 if (targetCat === 'all' || itemCat === targetCat) {
                     item.classList.remove('hidden');
