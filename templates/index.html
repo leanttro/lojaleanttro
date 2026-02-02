@@ -74,7 +74,7 @@
             
             <div class="relative w-full max-w-xs mx-auto md:mx-0 order-2 md:order-1 flex justify-center md:justify-start">
                 <div class="relative w-full">
-                    <input type="text" placeholder="Buscar produtos..." class="w-full border-b border-gray-200 py-2 pr-8 text-sm focus:outline-none focus:border-theme text-center md:text-left">
+                    <input type="text" id="search-input" onkeyup="searchProducts()" placeholder="Buscar produtos..." class="w-full border-b border-gray-200 py-2 pr-8 text-sm focus:outline-none focus:border-theme text-center md:text-left">
                     <i data-lucide="search" class="absolute right-0 top-2.5 w-4 h-4 text-gray-400"></i>
                 </div>
             </div>
@@ -257,7 +257,7 @@
         </div>
         {% endif %}
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {% for p in produtos %}
             <div class="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col relative" id="card-{{ p.id }}">
                 
@@ -613,6 +613,24 @@
 
             const url = `https://wa.me/${lojaPhone}?text=${encodeURIComponent(msg)}`;
             window.open(url, '_blank');
+        }
+
+        // Função de busca
+        function searchProducts() {
+            const input = document.getElementById('search-input');
+            const filter = input.value.toLowerCase();
+            const grid = document.getElementById('products-grid');
+            const cards = grid.children;
+
+            for (let i = 0; i < cards.length; i++) {
+                const card = cards[i];
+                const text = card.textContent || card.innerText;
+                if (text.toLowerCase().indexOf(filter) > -1) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            }
         }
     </script>
 </body>
