@@ -31,9 +31,23 @@
             .category-dropdown:hover .dropdown-menu { display: block; }
         }
 
-        .slider-container { position: relative; overflow: hidden; height: 500px; }
-        .slide { position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; transition: opacity 0.8s ease-in-out; opacity: 0; display: flex; align-items: center; }
-        .slide.active { opacity: 1; }
+        /* Estilos do Slider */
+        .slider-container { position: relative; overflow: hidden; height: 350px; }
+        @media (min-width: 768px) { .slider-container { height: 500px; } }
+
+        .slide { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            opacity: 0; 
+            transition: opacity 1s ease-in-out; 
+            z-index: 0;
+            display: flex;
+            align-items: center;
+        }
+        .slide.active { opacity: 1; z-index: 10; }
         
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
@@ -43,11 +57,8 @@
         .animate-urgent { animation: pulse-red 2s infinite; }
         .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         
-        /* Animação suave para o texto do topo */
         .fade-text { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        @media(max-width: 768px) { .slider-container { height: 300px; } }
     </style>
 </head>
 <body class="bg-white text-gray-800 flex flex-col min-h-screen">
@@ -150,38 +161,60 @@
         </div>
     </nav>
 
-    <section class="relative h-[350px] md:h-[500px] w-full overflow-hidden font-family: 'Poppins', sans-serif;">
+    <section class="slider-container w-full font-family: 'Poppins', sans-serif;">
         
-        <div class="absolute inset-0">
-            {% if loja.banner1 %}
-                <img src="{{ loja.banner1 }}" class="w-full h-full object-cover object-top md:object-center" alt="Destaque da Loja">
-            {% else %}
-                <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">Sem Imagem de Banner</div>
-            {% endif %}
-        </div>
-    
-        <div class="absolute inset-0 bg-gradient-to-l from-purple-900/95 via-purple-900/50 to-transparent"></div>
-    
-        <div class="absolute inset-0 container mx-auto px-4 flex items-center justify-end">
-            <div class="max-w-lg text-right text-white pr-4 md:pr-12 mt-8 md:mt-12">
-                
-                <h2 class="text-3xl md:text-5xl font-bold leading-tight mb-4 drop-shadow-lg" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                    Você merece <span class="whitespace-nowrap">passar o dia</span> <br>
-                    <span class="text-purple-200 italic font-serif-display">confortável</span>, 
-                    <span class="text-purple-200 italic font-serif-display">hidratada</span> e 
-                    <span class="text-purple-200 italic font-serif-display">preparada</span>.
-                </h2>
-                
-                <p class="text-gray-200 text-sm md:text-base mb-8 font-light tracking-wide">
-                    Kits pensados para a sua rotina, do trabalho ao lazer.
-                </p>
-    
-                <a href="/presentes/" class="bg-white text-purple-900 hover:bg-purple-100 font-bold py-3 px-8 rounded-full shadow-xl transition-all hover:scale-105 inline-flex items-center gap-2">
-                    VER COLEÇÃO <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </a>
-    
+        <div class="slide active">
+            <div class="absolute inset-0">
+                {% if loja.banner1 %}
+                    <img src="{{ loja.banner1 }}" class="w-full h-full object-cover object-top md:object-center">
+                {% else %}
+                    <div class="w-full h-full bg-gray-200"></div>
+                {% endif %}
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-l from-purple-900/95 via-purple-900/50 to-transparent"></div>
+            <div class="absolute inset-0 container mx-auto px-4 flex items-center justify-end">
+                <div class="max-w-lg text-right text-white pr-4 md:pr-12 mt-8 md:mt-12">
+                    <h2 class="text-3xl md:text-5xl font-bold leading-tight mb-4 drop-shadow-lg" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                        Você merece <span class="whitespace-nowrap">passar o dia</span> <br>
+                        <span class="text-purple-200 italic font-serif-display">confortável</span>, 
+                        <span class="text-purple-200 italic font-serif-display">hidratada</span> e 
+                        <span class="text-purple-200 italic font-serif-display">preparada</span>.
+                    </h2>
+                    <p class="text-gray-200 text-sm md:text-base mb-8 font-light tracking-wide">
+                        Kits pensados para a sua rotina, do trabalho ao lazer.
+                    </p>
+                    <a href="/presentes/" class="bg-white text-purple-900 hover:bg-purple-100 font-bold py-3 px-8 rounded-full shadow-xl transition-all hover:scale-105 inline-flex items-center gap-2">
+                        VER COLEÇÃO <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
             </div>
         </div>
+
+        <div class="slide">
+            <div class="absolute inset-0">
+                {% if loja.banner2 %}
+                    <img src="{{ loja.banner2 }}" class="w-full h-full object-cover object-center">
+                {% else %}
+                    <div class="w-full h-full bg-gray-300"></div>
+                {% endif %}
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-purple-900/95 via-purple-900/50 to-transparent"></div>
+            <div class="absolute inset-0 container mx-auto px-4 flex items-center justify-start">
+                <div class="max-w-xl text-left text-white pl-4 md:pl-12 mt-8 md:mt-12">
+                    <h2 class="text-3xl md:text-5xl font-bold leading-tight mb-4 drop-shadow-lg uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                        ETERNIZE <br>
+                        <span class="text-purple-200 italic font-serif-display">Momentos Especiais</span>
+                    </h2>
+                    <p class="text-gray-200 text-sm md:text-base mb-8 font-light tracking-wide leading-relaxed">
+                        Surpreenda seus clientes ou convidados. Itens selecionados personalizáveis para empresas, festas e grandes comemorações.
+                    </p>
+                    <a href="https://wa.me/5511913324827?text=Olá!%20Gostaria%20de%20orçar%20produtos%20personalizados." target="_blank" class="bg-white text-purple-900 hover:bg-purple-100 font-bold py-3 px-8 rounded-full shadow-xl transition-all hover:scale-105 inline-flex items-center gap-2">
+                        ORÇAR PERSONALIZADOS <i data-lucide="message-circle" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </section>
 
     <section class="py-16 text-center">
@@ -370,10 +403,8 @@
 
     <script>
         lucide.createIcons();
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.slide');
         
-        // Configuração do Telefone do Dono (Formato Internacional: 55 + DDD + Numero)
+        // Configuração do Telefone do Dono
         const lojaPhone = "5511913324827";
 
         // Lógica da Barra de Anúncios Rotativa
@@ -387,14 +418,16 @@
         
         setInterval(() => {
             annIndex = (annIndex + 1) % announcements.length;
-            // Efeito de fade simples
             annElement.style.opacity = 0;
             setTimeout(() => {
                 annElement.innerText = announcements[annIndex];
                 annElement.style.opacity = 1;
-            }, 300); // tempo para o texto sumir antes de trocar
-        }, 3500); // Troca a cada 3.5 segundos
+            }, 300);
+        }, 3500);
 
+        // Lógica do Slider
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
         function changeSlide(direction) {
             if (slides.length === 0) return;
             slides[currentSlide].classList.remove('active');
@@ -407,7 +440,6 @@
         let userSelections = {};
         let freteSelecionado = null;
 
-        // Função para alternar o menu de categorias no Mobile
         function toggleMobileCat() {
             const menu = document.getElementById('cat-menu-list');
             menu.classList.toggle('hidden');
