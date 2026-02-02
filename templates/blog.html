@@ -12,10 +12,14 @@
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
         
-        :root { --primary: {{ loja.cor_primaria or '#dc2626' }}; }
+        :root { 
+            --primary: {{ loja.cor_primaria or '#dc2626' }}; 
+            --secondary: #7943e3;
+        }
         
         body { font-family: 'Poppins', sans-serif; }
         .text-theme { color: var(--primary); }
+        .text-secondary { color: var(--secondary); }
         .bg-theme { background-color: var(--primary); }
         .border-theme { border-color: var(--primary); }
         .hover\:bg-theme:hover { background-color: var(--primary); }
@@ -37,8 +41,8 @@
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
 
     <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-6">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
+            <div class="flex items-center gap-6 justify-center w-full md:w-auto">
                 <a href="/presentes/" class="flex items-center gap-2">
                     {% if loja.logo %}
                     <img src="{{ directus_url }}/assets/{{ loja.logo }}" class="h-10 object-contain">
@@ -63,7 +67,7 @@
                 </div>
             </div>
 
-            <div class="flex gap-4 text-xs font-bold uppercase tracking-widest">
+            <div class="flex gap-4 text-xs font-bold uppercase tracking-widest justify-center w-full md:w-auto">
                 <a href="/presentes/" class="hover:text-theme transition-colors flex items-center gap-1">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para Loja
                 </a>
