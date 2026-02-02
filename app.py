@@ -124,7 +124,8 @@ def index():
                     "urgencia": p.get('status_urgencia', 'Normal'),
                     "classe_frete": p.get('classe_frete', 'Pequeno'),
                     "variantes": variantes_tratadas,
-                    "descricao": p.get('descricao', '')
+                    "descricao": p.get('descricao', ''),
+                    "categoria_id": p.get('categoria_id') # CORREÇÃO AQUI
                 })
     except Exception as e:
         print(f"Erro Produtos: {e}")
