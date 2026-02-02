@@ -104,7 +104,7 @@
     </div>
 
     <nav class="border-y border-gray-100 sticky top-0 bg-white z-40 shadow-sm">
-        <div class="container mx-auto px-4 flex items-center justify-center md:justify-start">
+        <div class="container mx-auto px-4 flex items-center justify-center">
             <div class="relative category-dropdown border-r border-gray-100 py-4 pr-8 md:pr-12 cursor-pointer hover:text-theme transition-colors" onclick="toggleMobileCat()">
                 <div class="flex items-center space-x-2 font-bold uppercase text-xs tracking-widest">
                     <i data-lucide="menu" class="w-4 h-4"></i>
@@ -113,7 +113,11 @@
                 </div>
                 <div id="cat-menu-list" class="dropdown-menu hidden absolute top-full left-0 w-64 bg-white shadow-2xl border border-gray-100 z-50">
                     <ul class="py-2 text-sm text-gray-600">
-                        {% for cat in categorias %}
+                        <li class="px-6 py-3 hover:bg-gray-50 border-b border-gray-50 hover:text-theme transition-colors bg-gray-50">
+                            <a href="/presentes/" class="block font-bold">TODOS OS PRODUTOS</a>
+                        </li>
+                        
+                        {% for cat in categorias|sort(attribute='nome') %}
                         <li class="px-6 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 hover:text-theme transition-colors">
                             <a href="/presentes/?categoria={{ cat.id }}" class="block">{{ cat.nome }}</a>
                         </li>
