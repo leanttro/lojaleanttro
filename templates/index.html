@@ -16,6 +16,7 @@
         :root { 
             --primary: {{ loja.cor_primaria or '#dc2626' }}; 
             --secondary: #7943e3;
+            --announcement-bg: #c014fd;
         }
         body { font-family: 'Poppins', sans-serif; overflow-x: hidden; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
@@ -41,28 +42,19 @@
         }
         .animate-urgent { animation: pulse-red 2s infinite; }
         .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        
+        /* Animação suave para o texto do topo */
+        .fade-text { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         @media(max-width: 768px) { .slider-container { height: 300px; } }
     </style>
 </head>
 <body class="bg-white text-gray-800 flex flex-col min-h-screen">
 
-    <div class="border-b border-gray-100 py-2 text-[10px] uppercase tracking-wider text-gray-500 bg-white">
-        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-center md:justify-between items-center gap-2 md:gap-0 text-center md:text-left">
-            <div class="flex items-center space-x-4">
-                <div class="hidden md:flex items-center space-x-1 cursor-pointer">
-                    <img src="https://flagcdn.com/w20/br.png" width="14" alt="Brasil">
-                    <span>Português</span>
-                </div>
-            </div>
-            <div class="hidden lg:flex items-center space-x-6 normal-case text-[11px]">
-                <div class="flex items-center space-x-1">
-                    <i data-lucide="phone" class="w-3 h-3 text-theme"></i>
-                    <span>WhatsApp: <span class="font-semibold">{{ loja.whatsapp }}</span></span>
-                </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <span class="text-[9px] font-bold text-theme">ENVIOS PARA TODO BRASIL</span>
-            </div>
+    <div style="background-color: var(--announcement-bg);" class="py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest text-white text-center shadow-md z-50 relative">
+        <div class="container mx-auto px-4">
+            <span id="announcement-text" class="fade-text block">ENTREGAMOS PARA TODO BRASIL</span>
         </div>
     </div>
 
@@ -344,6 +336,10 @@
         </div>
     </footer>
 
+    <a href="https://wa.me/5511913324827" target="_blank" class="fixed bottom-4 right-4 z-50 bg-green-500 hover:bg-green-600 text-white p-3 md:p-4 rounded-full shadow-2xl transition-all hover:scale-110 flex items-center justify-center animate-bounce">
+        <i data-lucide="message-circle" class="w-6 h-6 md:w-8 md:h-8"></i>
+    </a>
+
     <div id="cart-modal" class="fixed inset-0 z-[60] hidden">
         <div class="absolute inset-0 modal-overlay transition-opacity duration-300" onclick="toggleCart()"></div>
         <div class="absolute right-0 top-0 h-full w-full md:w-[450px] bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="cart-panel">
@@ -376,6 +372,29 @@
         lucide.createIcons();
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
+        
+        // Configuração do Telefone do Dono (Formato Internacional: 55 + DDD + Numero)
+        const lojaPhone = "5511913324827";
+
+        // Lógica da Barra de Anúncios Rotativa
+        const announcements = [
+            "ENTREGAMOS PARA TODO BRASIL",
+            "FRETE GRÁTIS P/ SUL E SUDESTE ACIMA DE R$ 250,00",
+            "PEDIDOS FINALIZADOS SOMENTE NO WHATSAPP"
+        ];
+        let annIndex = 0;
+        const annElement = document.getElementById('announcement-text');
+        
+        setInterval(() => {
+            annIndex = (annIndex + 1) % announcements.length;
+            // Efeito de fade simples
+            annElement.style.opacity = 0;
+            setTimeout(() => {
+                annElement.innerText = announcements[annIndex];
+                annElement.style.opacity = 1;
+            }, 300); // tempo para o texto sumir antes de trocar
+        }, 3500); // Troca a cada 3.5 segundos
+
         function changeSlide(direction) {
             if (slides.length === 0) return;
             slides[currentSlide].classList.remove('active');
@@ -387,7 +406,6 @@
         let cart = [];
         let userSelections = {};
         let freteSelecionado = null;
-        const lojaPhone = "{{ loja.whatsapp }}";
 
         // Função para alternar o menu de categorias no Mobile
         function toggleMobileCat() {
@@ -424,7 +442,6 @@
             }
             cart.forEach((item, i) => {
                 total += (item.preco || 0) * item.qtd;
-                // Preço no carrinho também em ROXO
                 container.innerHTML += `
                     <div class="flex gap-4 border-b border-gray-100 pb-4 last:border-0 animate-[fadeIn_0.2s_ease-out]">
                         <img src="${item.imagem}" class="w-16 h-16 object-cover rounded-md bg-gray-100 border border-gray-200">
