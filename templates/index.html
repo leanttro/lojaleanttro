@@ -215,14 +215,14 @@
             <div class="absolute inset-0 container mx-auto px-4 flex items-center justify-start">
                 <div class="max-w-xl text-left text-white pl-4 md:pl-12 mt-8 md:mt-12">
                     <h2 class="text-3xl md:text-5xl font-bold leading-tight mb-4 drop-shadow-lg uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                        ETERNIZE <br>
-                        <span class="text-purple-200 italic font-serif-display">Momentos Especiais</span>
+                        TECNOLOGIA & <br>
+                        <span class="text-purple-200 italic font-serif-display">Inovação</span>
                     </h2>
                     <p class="text-gray-200 text-sm md:text-base mb-8 font-light tracking-wide leading-relaxed">
-                        Surpreenda seus clientes ou convidados. Itens selecionados personalizáveis para empresas, festas e grandes comemorações.
+                        Smartwatches, fones, carregadores e gadgets. Conecte-se com o que há de mais moderno.
                     </p>
-                    <a href="https://wa.me/5511913324827?text=Olá!%20Gostaria%20de%20orçar%20produtos%20personalizados." target="_blank" class="bg-white text-purple-900 hover:bg-purple-100 font-bold py-3 px-8 rounded-full shadow-xl transition-all hover:scale-105 inline-flex items-center gap-2">
-                        ORÇAR PERSONALIZADOS <i data-lucide="message-circle" class="w-4 h-4"></i>
+                    <a href="/presentes/" class="bg-white text-purple-900 hover:bg-purple-100 font-bold py-3 px-8 rounded-full shadow-xl transition-all hover:scale-105 inline-flex items-center gap-2">
+                        VER TECNOLOGIA <i data-lucide="smartphone" class="w-4 h-4"></i>
                     </a>
                 </div>
             </div>
@@ -327,13 +327,14 @@
     <section class="pb-16 container mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% if loja.bannermenor1 %}
-            <div class="relative h-[300px] overflow-hidden group">
-                <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors z-10"></div>
+            <a href="https://wa.me/5511913324827?text=Olá!%20Gostaria%20de%20orçar%20produtos%20personalizados." target="_blank" class="relative h-[300px] overflow-hidden group block">
+                <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors z-10"></div>
                 <img src="{{ loja.bannermenor1 }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                 <div class="absolute bottom-8 left-8 z-20">
-                    <h3 class="text-white text-3xl font-bold mb-2">Coleção Exclusiva</h3>
+                    <h3 class="text-white text-2xl md:text-3xl font-bold mb-1">Personalizados & Empresas</h3>
+                    <p class="text-white/90 text-sm font-light">Solicite seu orçamento exclusivo.</p>
                 </div>
-            </div>
+            </a>
             {% endif %}
             {% if loja.bannermenor2 %}
             <div class="relative h-[300px] overflow-hidden group">
@@ -480,7 +481,6 @@
         let userSelections = {};
         let freteSelecionado = null;
 
-        // PERSISTÊNCIA DA SACOLA (ADICIONADO PARA MELHORAR UX)
         try {
              cart = JSON.parse(localStorage.getItem('cart_v2') || '[]');
         } catch(e) { cart = []; }
@@ -555,7 +555,6 @@
             totalEl.innerText = totalFmt;
             if(headerTotalEl) headerTotalEl.innerText = totalFmt;
 
-            // ATUALIZAR BARRA DE FRETE GRÁTIS
             const goal = 250;
             const remaining = Math.max(0, goal - total);
             const progress = Math.min(100, (total / goal) * 100);
@@ -689,7 +688,6 @@
             }
         }
         
-        // Inicializa UI (recupera localStorage)
         updateCartUI();
     </script>
 </body>
