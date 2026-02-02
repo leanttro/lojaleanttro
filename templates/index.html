@@ -60,9 +60,31 @@
         .fade-text { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Esconder barra de rolagem mas manter funcionalidade */
+        /* Esconder barra de rolagem onde não é necessária */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ESTILO DA BARRA DE ROLAGEM DAS CATEGORIAS (Visível) */
+        .category-scroll {
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: var(--secondary) #f1f1f1; /* Firefox */
+        }
+        .category-scroll::-webkit-scrollbar {
+            height: 8px; /* Altura da barra */
+        }
+        .category-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .category-scroll::-webkit-scrollbar-thumb {
+            background-color: #d1d5db; /* Cor cinza padrão */
+            border-radius: 4px;
+            border: 2px solid #f1f1f1;
+        }
+        .category-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: var(--secondary); /* Cor ao passar o mouse */
+        }
+
     </style>
 </head>
 <body class="bg-white text-gray-800 flex flex-col min-h-screen">
@@ -333,12 +355,12 @@
                 Todos os <span class="italic text-secondary">Produtos</span>
             </h2>
 
-            <div class="flex gap-3 overflow-x-auto pb-6 scrollbar-hide mb-4">
-                <button onclick="filterCarousel('all')" class="filter-btn active whitespace-nowrap bg-gray-900 text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors" id="filter-btn-all">
+            <div class="flex gap-3 overflow-x-auto pb-4 mb-4 category-scroll">
+                <button onclick="filterCarousel('all')" class="filter-btn active whitespace-nowrap bg-gray-900 text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors flex-shrink-0" id="filter-btn-all">
                     Todos
                 </button>
                 {% for cat in categorias %}
-                <button onclick="filterCarousel('{{ cat.id }}')" class="filter-btn whitespace-nowrap bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:border-theme hover:text-theme transition-colors" id="filter-btn-{{ cat.id }}">
+                <button onclick="filterCarousel('{{ cat.id }}')" class="filter-btn whitespace-nowrap bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:border-theme hover:text-theme transition-colors flex-shrink-0" id="filter-btn-{{ cat.id }}">
                     {{ cat.nome }}
                 </button>
                 {% endfor %}
@@ -788,8 +810,6 @@
                 // Pega o valor do atributo data-category e garante string
                 const rawCat = item.getAttribute('data-category');
                 const itemCat = String(rawCat || '').trim();
-
-                // Debug se precisar: console.log(`Item Cat: "${itemCat}" vs Target: "${targetCat}"`);
 
                 if (targetCat === 'all' || itemCat === targetCat) {
                     item.classList.remove('hidden');
