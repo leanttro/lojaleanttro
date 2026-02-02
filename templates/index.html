@@ -100,10 +100,12 @@
                         <i data-lucide="menu" class="w-5 h-5 text-gray-700"></i>
                         <span class="text-[10px] font-bold uppercase tracking-wider text-gray-600">Categorias</span>
                     </button>
-                    <div id="cat-menu-list" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-xs bg-white shadow-2xl border border-gray-100 z-[70] rounded-xl overflow-hidden ring-1 ring-gray-200">
+                    
+                    <div id="cat-menu-overlay" onclick="toggleMobileCat()" class="hidden fixed inset-0 bg-black/50 z-[60] backdrop-blur-sm"></div>
+                    <div id="cat-menu-list" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-xs bg-white shadow-2xl border border-gray-100 z-[70] rounded-xl overflow-hidden ring-1 ring-gray-200 animate-[fadeIn_0.2s_ease-out]">
                         <div class="bg-gray-50 px-5 py-3 border-b border-gray-100 flex justify-between items-center">
                             <span class="font-bold text-xs uppercase tracking-widest text-gray-500">Navegação</span>
-                            <button onclick="toggleMobileCat()" class="text-gray-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+                            <button onclick="toggleMobileCat()" class="text-gray-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
                         </div>
                         <ul class="py-2 text-sm text-gray-600 text-left max-h-[60vh] overflow-y-auto">
                             <li class="px-5 py-3 hover:bg-gray-50 border-b border-gray-50 bg-gray-50/50">
@@ -167,15 +169,6 @@
 
     <section class="slider-container w-full font-family: 'Poppins', sans-serif;">
         
-        <div class="absolute bottom-4 left-0 w-full flex justify-center items-center gap-6 z-20 md:hidden">
-            <button onclick="changeSlide(-1)" class="bg-black/30 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 hover:bg-black/50 active:scale-95 transition-all">
-                <i data-lucide="chevron-left" class="w-5 h-5"></i>
-            </button>
-            <button onclick="changeSlide(1)" class="bg-black/30 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 hover:bg-black/50 active:scale-95 transition-all">
-                <i data-lucide="chevron-right" class="w-5 h-5"></i>
-            </button>
-        </div>
-
         <button onclick="changeSlide(-1)" class="hidden md:block absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-black/20 hover:bg-black/50 text-white p-3 rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/20 group">
             <i data-lucide="chevron-left" class="w-8 h-8 group-hover:scale-110 transition-transform"></i>
         </button>
@@ -236,6 +229,15 @@
         </div>
 
     </section>
+
+    <div class="w-full flex justify-center items-center gap-6 py-4 bg-white md:hidden border-b border-gray-50">
+        <button onclick="changeSlide(-1)" class="bg-gray-100 text-gray-800 p-3 rounded-full border border-gray-200 hover:bg-gray-200 active:scale-95 transition-all shadow-sm">
+            <i data-lucide="chevron-left" class="w-6 h-6"></i>
+        </button>
+        <button onclick="changeSlide(1)" class="bg-gray-100 text-gray-800 p-3 rounded-full border border-gray-200 hover:bg-gray-200 active:scale-95 transition-all shadow-sm">
+            <i data-lucide="chevron-right" class="w-6 h-6"></i>
+        </button>
+    </div>
 
     <section class="py-16 text-center">
         <div class="container mx-auto px-4">
@@ -462,7 +464,9 @@
 
         function toggleMobileCat() {
             const menu = document.getElementById('cat-menu-list');
+            const overlay = document.getElementById('cat-menu-overlay');
             menu.classList.toggle('hidden');
+            overlay.classList.toggle('hidden');
         }
 
         function toggleCart() {
