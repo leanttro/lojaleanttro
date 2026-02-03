@@ -195,6 +195,15 @@
 
     <section class="slider-container w-full font-family: 'Poppins', sans-serif;">
         
+        <div class="absolute bottom-4 left-0 w-full flex justify-center items-center gap-6 z-20 md:hidden">
+            <button onclick="changeSlide(-1)" class="bg-black/30 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 hover:bg-black/50 active:scale-95 transition-all">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </button>
+            <button onclick="changeSlide(1)" class="bg-black/30 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 hover:bg-black/50 active:scale-95 transition-all">
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+        </div>
+
         <button onclick="changeSlide(-1)" class="hidden md:block absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-black/20 hover:bg-black/50 text-white p-3 rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/20 group">
             <i data-lucide="chevron-left" class="w-8 h-8 group-hover:scale-110 transition-transform"></i>
         </button>
@@ -502,13 +511,6 @@
                     </h4>
                     <p class="leading-relaxed">Trabalhamos com <strong>Serigrafia, Laser, DTF e UV</strong>. Para brindes personalizados, consulte a <span class="underline decoration-purple-300">quantidade mínima</span> necessária.</p>
                 </div>
-            </div>
-
-            <div class="flex justify-center space-x-8 text-purple-200 text-xs font-bold uppercase tracking-widest mb-8">
-                <a href="#" class="hover:text-white transition-colors">Privacidade</a>
-                <a href="#" class="hover:text-white transition-colors">Termos</a>
-                <a href="#" class="hover:text-white transition-colors">Envios</a>
-                <a href="#" class="hover:text-white transition-colors">Contato</a>
             </div>
             
             <p class="text-[10px] text-purple-300 uppercase tracking-widest">© 2026 {{ loja.nome }}. Powered by Leanttro.</p>
