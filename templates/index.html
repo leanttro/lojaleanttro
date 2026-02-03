@@ -463,23 +463,55 @@
     </section>
     {% endif %}
 
-    <footer class="bg-gray-50 py-16 border-t mt-auto">
+    <footer style="background-color: #7943e3;" class="py-16 text-white mt-auto">
         <div class="container mx-auto px-4 text-center">
+            
             <div class="mb-8 flex justify-center">
                 {% if loja.logo %}
-                <img src="{{ directus_url }}/assets/{{ loja.logo }}" class="h-8 object-contain opacity-70 grayscale hover:grayscale-0 transition-all">
+                <img src="{{ directus_url }}/assets/{{ loja.logo }}" class="h-10 object-contain brightness-0 invert">
                 {% else %}
-                <span class="text-xl font-bold text-gray-400">{{ loja.nome }}</span>
+                <span class="text-2xl font-bold text-white">{{ loja.nome }}</span>
                 {% endif %}
             </div>
-            <p class="text-sm text-gray-500 max-w-md mx-auto mb-8 leading-relaxed">Selecionamos os melhores produtos da 25 de Março e importados para impulsionar suas vendas e presentear com estilo.</p>
-            <div class="flex justify-center space-x-8 text-gray-400 text-xs font-bold uppercase tracking-widest">
-                <a href="#" class="hover:text-theme transition-colors">Privacidade</a>
-                <a href="#" class="hover:text-theme transition-colors">Termos</a>
-                <a href="#" class="hover:text-theme transition-colors">Envios</a>
-                <a href="#" class="hover:text-theme transition-colors">Contato</a>
+
+            <div class="mb-10 space-y-3">
+                <h3 class="font-bold text-lg mb-2">Fale Conosco</h3>
+                <div class="flex flex-col md:flex-row justify-center gap-6 text-sm font-light">
+                    <a href="https://wa.me/5511913324827" target="_blank" class="hover:text-purple-200 flex items-center justify-center gap-2 transition-colors">
+                        <i data-lucide="phone" class="w-5 h-5"></i> (11) 91332-4827
+                    </a>
+                    <a href="mailto:comercial@leanttro.com" class="hover:text-purple-200 flex items-center justify-center gap-2 transition-colors">
+                        <i data-lucide="mail" class="w-5 h-5"></i> comercial@leanttro.com
+                    </a>
+                    <a href="https://instagram.com/lelisvende" target="_blank" class="hover:text-purple-200 flex items-center justify-center gap-2 transition-colors">
+                        <i data-lucide="instagram" class="w-5 h-5"></i> @lelisvende
+                    </a>
+                </div>
             </div>
-            <p class="mt-12 text-[10px] text-gray-300 uppercase tracking-widest">© 2026 {{ loja.nome }}. Powered by Leanttro.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12 text-sm text-purple-100">
+                <div class="bg-white/10 p-6 rounded-xl backdrop-blur-sm border border-white/10">
+                    <h4 class="font-bold text-white mb-2 uppercase tracking-wider text-xs flex items-center justify-center gap-2">
+                        <i data-lucide="truck" class="w-4 h-4"></i> Envios & Prazos
+                    </h4>
+                    <p class="leading-relaxed">Nossos envios são realizados exclusivamente às <strong>Terças e Sextas-feiras até às 12h</strong>. Pedidos aprovados após esse horário serão enviados no próximo dia de remessa.</p>
+                </div>
+                <div class="bg-white/10 p-6 rounded-xl backdrop-blur-sm border border-white/10">
+                    <h4 class="font-bold text-white mb-2 uppercase tracking-wider text-xs flex items-center justify-center gap-2">
+                        <i data-lucide="palette" class="w-4 h-4"></i> Personalização (Empresas)
+                    </h4>
+                    <p class="leading-relaxed">Trabalhamos com <strong>Serigrafia, Laser, DTF e UV</strong>. Para brindes personalizados, consulte a <span class="underline decoration-purple-300">quantidade mínima</span> necessária.</p>
+                </div>
+            </div>
+
+            <div class="flex justify-center space-x-8 text-purple-200 text-xs font-bold uppercase tracking-widest mb-8">
+                <a href="#" class="hover:text-white transition-colors">Privacidade</a>
+                <a href="#" class="hover:text-white transition-colors">Termos</a>
+                <a href="#" class="hover:text-white transition-colors">Envios</a>
+                <a href="#" class="hover:text-white transition-colors">Contato</a>
+            </div>
+            
+            <p class="text-[10px] text-purple-300 uppercase tracking-widest">© 2026 {{ loja.nome }}. Powered by Leanttro.</p>
         </div>
     </footer>
 
@@ -810,6 +842,8 @@
                 // Pega o valor do atributo data-category e garante string
                 const rawCat = item.getAttribute('data-category');
                 const itemCat = String(rawCat || '').trim();
+
+                // Debug se precisar: console.log(`Item Cat: "${itemCat}" vs Target: "${targetCat}"`);
 
                 if (targetCat === 'all' || itemCat === targetCat) {
                     item.classList.remove('hidden');
