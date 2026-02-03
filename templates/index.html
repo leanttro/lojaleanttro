@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ loja.nome }} | Catálogo Oficial</title>
+    <title>{{ loja.nome }}</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -187,8 +187,8 @@
 
             <ul class="hidden md:flex items-center space-x-10 ml-12 font-bold uppercase text-[11px] tracking-[0.2em] text-gray-700">
                 <li><a href="/presentes/" class="hover:text-theme transition-colors">Início</a></li>
-                <li><a href="#" class="hover:text-theme transition-colors">Lançamentos</a></li>
-                <li><a href="#" class="hover:text-theme transition-colors">Contato</a></li>
+                <li><a href="#novidades" class="hover:text-theme transition-colors">Lançamentos</a></li>
+                <li><a href="#contato" class="hover:text-theme transition-colors">Contato</a></li>
             </ul>
         </div>
     </nav>
@@ -265,7 +265,7 @@
         </button>
     </div>
 
-    <section class="py-16 text-center">
+    <section class="py-16 text-center" id="novidades">
         <div class="container mx-auto px-4">
             <h2 class="text-3xl md:text-5xl font-serif-display font-bold text-gray-900 mb-4">
                 Novidades da <span class="italic text-secondary">Semana</span>
@@ -463,7 +463,7 @@
     </section>
     {% endif %}
 
-    <footer style="background-color: #7943e3;" class="py-16 text-white mt-auto">
+    <footer style="background-color: #7943e3;" class="py-16 text-white mt-auto" id="contato">
         <div class="container mx-auto px-4 text-center">
             
             <div class="mb-8 flex justify-center">
@@ -842,8 +842,6 @@
                 // Pega o valor do atributo data-category e garante string
                 const rawCat = item.getAttribute('data-category');
                 const itemCat = String(rawCat || '').trim();
-
-                // Debug se precisar: console.log(`Item Cat: "${itemCat}" vs Target: "${targetCat}"`);
 
                 if (targetCat === 'all' || itemCat === targetCat) {
                     item.classList.remove('hidden');
