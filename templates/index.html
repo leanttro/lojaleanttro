@@ -274,6 +274,69 @@
         </button>
     </div>
 
+    <section class="py-16 bg-gray-50 border-t border-gray-100">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl md:text-3xl font-serif-display font-bold text-gray-900 mb-8 text-center">
+                Todos os <span class="italic text-secondary">Produtos</span>
+            </h2>
+
+            <div class="flex gap-3 overflow-x-auto pb-4 mb-4 category-scroll">
+                <button onclick="filterCarousel('all')" class="filter-btn active whitespace-nowrap bg-gray-900 text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors flex-shrink-0" id="filter-btn-all">
+                    Todos
+                </button>
+                {% for cat in categorias %}
+                <button onclick="filterCarousel('{{ cat.id }}')" class="filter-btn whitespace-nowrap bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:border-theme hover:text-theme transition-colors flex-shrink-0" id="filter-btn-{{ cat.id }}">
+                    {{ cat.nome }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <div class="relative group">
+                <button onclick="scrollProductCarousel(-1)" class="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 bg-white p-3 rounded-full shadow-lg border border-gray-100 hover:scale-110 transition-transform">
+                    <i data-lucide="chevron-left" class="w-6 h-6 text-gray-700"></i>
+                </button>
+
+                <div id="all-products-list" class="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-8 px-1">
+                    {% for p in produtos %}
+                    <div class="min-w-[160px] md:min-w-[250px] max-w-[160px] md:max-w-[250px] bg-white rounded-lg border border-gray-100 shadow-sm flex-shrink-0 flex flex-col product-carousel-item" data-category="{{ p.categoria_id }}">
+                        <a href="/presentes/produto/{{ p.slug }}" class="aspect-[4/5] bg-gray-50 block overflow-hidden relative">
+                            <img src="{{ p.imagem }}" class="w-full h-full object-cover">
+                        </a>
+                        <div class="p-3 flex flex-col flex-grow">
+                            <a href="/presentes/produto/{{ p.slug }}" class="font-bold text-xs md:text-sm text-gray-800 line-clamp-2 mb-2 h-8 md:h-10 hover:text-theme transition-colors">
+                                {{ p.nome }}
+                            </a>
+                            <div class="mt-auto">
+                                {% if p.preco %}
+                                <span class="text-sm md:text-base font-bold text-secondary">R$ {{ "%.2f"|format(p.preco)|replace('.', ',') }}</span>
+                                {% else %}
+                                <span class="text-xs font-bold bg-gray-100 text-gray-500 px-1 py-0.5 rounded">Consulte</span>
+                                {% endif %}
+                                <button onclick='addToCartWithColor({{ p | tojson }})' class="w-full mt-2 bg-gray-900 hover:bg-theme text-white text-[10px] md:text-xs font-bold py-2 rounded uppercase tracking-widest transition-colors">
+                                    Adicionar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button onclick="scrollProductCarousel(1)" class="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 bg-white p-3 rounded-full shadow-lg border border-gray-100 hover:scale-110 transition-transform">
+                    <i data-lucide="chevron-right" class="w-6 h-6 text-gray-700"></i>
+                </button>
+            </div>
+
+            <div class="w-full flex justify-center items-center gap-6 mt-2 md:hidden">
+                <button onclick="scrollProductCarousel(-1)" class="bg-white text-gray-800 p-3 rounded-full border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all shadow-sm">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+                <button onclick="scrollProductCarousel(1)" class="bg-white text-gray-800 p-3 rounded-full border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all shadow-sm">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
     <section class="py-16 text-center" id="novidades">
         <div class="container mx-auto px-4">
             <h2 class="text-3xl md:text-5xl font-serif-display font-bold text-gray-900 mb-4">
@@ -288,7 +351,7 @@
         <div class="text-center py-20 bg-gray-50 rounded-lg">
             <i data-lucide="package-open" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
             <p class="text-gray-500">Nenhum destaque cadastrado nesta semana.</p>
-            <a href="#all-products-list" class="text-theme mt-2 block font-bold">Ver Todos os Produtos Abaixo</a>
+            <a href="#all-products-list" class="text-theme mt-2 block font-bold">Ver Todos os Produtos Acima</a>
         </div>
         {% endif %}
 
@@ -355,69 +418,6 @@
                 </div>
             </div>
             {% endfor %}
-        </div>
-    </section>
-
-    <section class="py-16 bg-gray-50 border-t border-gray-100">
-        <div class="container mx-auto px-4">
-            <h2 class="text-2xl md:text-3xl font-serif-display font-bold text-gray-900 mb-8 text-left">
-                Todos os <span class="italic text-secondary">Produtos</span>
-            </h2>
-
-            <div class="flex gap-3 overflow-x-auto pb-4 mb-4 category-scroll">
-                <button onclick="filterCarousel('all')" class="filter-btn active whitespace-nowrap bg-gray-900 text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors flex-shrink-0" id="filter-btn-all">
-                    Todos
-                </button>
-                {% for cat in categorias %}
-                <button onclick="filterCarousel('{{ cat.id }}')" class="filter-btn whitespace-nowrap bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:border-theme hover:text-theme transition-colors flex-shrink-0" id="filter-btn-{{ cat.id }}">
-                    {{ cat.nome }}
-                </button>
-                {% endfor %}
-            </div>
-
-            <div class="relative group">
-                <button onclick="scrollProductCarousel(-1)" class="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 bg-white p-3 rounded-full shadow-lg border border-gray-100 hover:scale-110 transition-transform">
-                    <i data-lucide="chevron-left" class="w-6 h-6 text-gray-700"></i>
-                </button>
-
-                <div id="all-products-list" class="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-8 px-1">
-                    {% for p in produtos %}
-                    <div class="min-w-[160px] md:min-w-[250px] max-w-[160px] md:max-w-[250px] bg-white rounded-lg border border-gray-100 shadow-sm flex-shrink-0 flex flex-col product-carousel-item" data-category="{{ p.categoria_id }}">
-                        <a href="/presentes/produto/{{ p.slug }}" class="aspect-[4/5] bg-gray-50 block overflow-hidden relative">
-                            <img src="{{ p.imagem }}" class="w-full h-full object-cover">
-                        </a>
-                        <div class="p-3 flex flex-col flex-grow">
-                            <a href="/presentes/produto/{{ p.slug }}" class="font-bold text-xs md:text-sm text-gray-800 line-clamp-2 mb-2 h-8 md:h-10 hover:text-theme transition-colors">
-                                {{ p.nome }}
-                            </a>
-                            <div class="mt-auto">
-                                {% if p.preco %}
-                                <span class="text-sm md:text-base font-bold text-secondary">R$ {{ "%.2f"|format(p.preco)|replace('.', ',') }}</span>
-                                {% else %}
-                                <span class="text-xs font-bold bg-gray-100 text-gray-500 px-1 py-0.5 rounded">Consulte</span>
-                                {% endif %}
-                                <button onclick='addToCartWithColor({{ p | tojson }})' class="w-full mt-2 bg-gray-900 hover:bg-theme text-white text-[10px] md:text-xs font-bold py-2 rounded uppercase tracking-widest transition-colors">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <button onclick="scrollProductCarousel(1)" class="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 bg-white p-3 rounded-full shadow-lg border border-gray-100 hover:scale-110 transition-transform">
-                    <i data-lucide="chevron-right" class="w-6 h-6 text-gray-700"></i>
-                </button>
-            </div>
-
-            <div class="w-full flex justify-center items-center gap-6 mt-2 md:hidden">
-                <button onclick="scrollProductCarousel(-1)" class="bg-white text-gray-800 p-3 rounded-full border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all shadow-sm">
-                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                </button>
-                <button onclick="scrollProductCarousel(1)" class="bg-white text-gray-800 p-3 rounded-full border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all shadow-sm">
-                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                </button>
-            </div>
         </div>
     </section>
 
