@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 import traceback
-import json
+import json  # Adicionado para garantir o parse do JSON caso venha como string
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -12,7 +12,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # --- CONFIGURAÇÕES GERAIS ---
-# CORREÇÃO: .rstrip('/') impede que a URL fique com barras duplas (ex: .com//assets)
+# CORREÇÃO: Adicionado .rstrip('/') para evitar barras duplas se a env var tiver '/' no final
 DIRECTUS_URL = os.getenv("DIRECTUS_URL", "https://api2.leanttro.com").rstrip('/')
 DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN", "") 
 LOJA_ID = os.getenv("LOJA_ID", "") 
@@ -86,7 +86,7 @@ def get_categorias(headers):
     except: pass
     return []
 
-# --- ROTA: HOME (INDEX) ---
+# --- ROTA: HOME (INDEX) - CAMINHO FIXADO /presentes/ ---
 @app.route('/presentes/')
 def index():
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
@@ -101,6 +101,8 @@ def index():
         filter_str += f"&filter[categoria_id][_eq]={cat_filter}"
 
     produtos = []
+    novidades = [] # Lista separada para Novidades via JSON
+
     try:
         url_prod = f"{DIRECTUS_URL}/items/produtos?{filter_str}"
         resp_prod = requests.get(url_prod, headers=headers)
@@ -116,7 +118,25 @@ def index():
                         v_img = get_img_url(v.get('foto')) if v.get('foto') else img_url
                         variantes_tratadas.append({"nome": v.get('nome', 'Padrão'), "foto": v_img})
 
-                produtos.append({
+                # --- LÓGICA DE ESPECIFAÇÕES (JSON) PARA NOVIDADES ---
+                specs = p.get('especificacoes')
+                is_novidade = False
+                ordem_novidade = 9999
+
+                # Tenta parsear se for string, ou usa direto se for dict
+                try:
+                    if specs and isinstance(specs, str):
+                        specs = json.loads(specs)
+                    
+                    if isinstance(specs, dict):
+                        if specs.get('novidade') == True:
+                            is_novidade = True
+                            ordem_novidade = int(specs.get('ordem', 9999))
+                except:
+                    pass
+                # ---------------------------------------------------
+
+                prod_obj = {
                     "id": str(p['id']), 
                     "nome": p['nome'],
                     "slug": p.get('slug'),
@@ -127,8 +147,19 @@ def index():
                     "classe_frete": p.get('classe_frete', 'Pequeno'),
                     "variantes": variantes_tratadas,
                     "descricao": p.get('descricao', ''),
-                    "categoria_id": p.get('categoria_id')
-                })
+                    "categoria_id": p.get('categoria_id'),
+                    "ordem_novidade": ordem_novidade # Guarda a ordem
+                }
+
+                produtos.append(prod_obj)
+
+                # Se foi marcado como novidade, adiciona na lista específica
+                if is_novidade:
+                    novidades.append(prod_obj)
+            
+            # Ordena a lista de novidades baseada no número 'ordem' do JSON
+            novidades.sort(key=lambda x: x['ordem_novidade'])
+
     except Exception as e:
         print(f"Erro Produtos: {e}")
 
@@ -153,9 +184,10 @@ def index():
                 })
     except: pass
 
-    return render_template('index.html', loja=loja, categorias=categorias, produtos=produtos, posts=posts, directus_url=DIRECTUS_URL)
+    # Passamos agora 'novidades' explicitamente para o template
+    return render_template('index.html', loja=loja, categorias=categorias, produtos=produtos, novidades=novidades, posts=posts, directus_url=DIRECTUS_URL)
 
-# --- ROTA: PÁGINA DE PRODUTO INDIVIDUAL ---
+# --- ROTA: PÁGINA DE PRODUTO INDIVIDUAL - CAMINHO FIXADO /presentes/... ---
 @app.route('/presentes/produto/<slug>')
 def produto(slug):
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
@@ -203,7 +235,7 @@ def produto(slug):
 
     return render_template('produtos.html', loja=loja, categorias=categorias, p=product_data, directus_url=DIRECTUS_URL)
 
-# --- ROTA: POST DO BLOG ---
+# --- ROTA: POST DO BLOG - CAMINHO FIXADO /presentes/... ---
 @app.route('/presentes/blog/<slug>')
 def blog_post(slug):
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
@@ -212,6 +244,7 @@ def blog_post(slug):
     
     post_data = None
     try:
+        # Busca o post pelo slug
         url_post = f"{DIRECTUS_URL}/items/posts?filter[slug][_eq]={slug}&filter[loja_id][_eq]={LOJA_ID}&filter[status][_eq]=published"
         resp = requests.get(url_post, headers=headers)
         
@@ -245,7 +278,7 @@ def blog_post(slug):
 def blog_list():
     return index() 
 
-# --- ROTA: CÁLCULO DE FRETE (BLINDADA CONTRA ERRO 500) ---
+# --- ROTA: CÁLCULO DE FRETE (DEBUG ATUALIZADO) ---
 @app.route('/presentes/api/calcular-frete', methods=['POST'])
 def calcular_frete():
     data = request.json
@@ -261,11 +294,12 @@ def calcular_frete():
     comprimento_max = 0.0
     valor_seguro = 0.0
 
+    # Cálculo das dimensões baseado na sua lógica
     for item in itens_carrinho:
         classe = item.get('classe_frete', 'Pequeno')
         qtd = int(item.get('qtd', 1))
         
-        # Proteção: Usa .get para não crashar se a classe não existir no dicionário
+        # Proteção contra classe inválida
         medidas = DIMENSOES.get(classe, DIMENSOES['Pequeno'])
         
         peso_total += medidas['weight'] * qtd
@@ -275,11 +309,11 @@ def calcular_frete():
         if item.get('preco'): 
             valor_seguro += float(item['preco']) * qtd
 
-    # Ajustes: Força inteiros nas dimensões e arredonda o peso (evita erros da API)
+    # Ajustes mínimos dos Correios/Superfrete - GARANTIR INT
     altura_total = int(max(altura_total, 2))
     largura_max = int(max(largura_max, 11))
     comprimento_max = int(max(comprimento_max, 16))
-    peso_total = round(max(peso_total, 0.3), 2)
+    peso_total = max(peso_total, 0.3)
     valor_seguro = max(valor_seguro, 25.00)
 
     headers = {
@@ -302,65 +336,66 @@ def calcular_frete():
             "height": altura_total, 
             "width": largura_max, 
             "length": comprimento_max, 
-            "weight": peso_total 
+            "weight": round(peso_total, 2)
         }
     }
 
     try:
-        print(f"--- ENVIANDO PARA SUPERFRETE ---")
-        # Timeout para não travar o site se a Superfrete cair
-        response = requests.post(SUPERFRETE_URL, json=payload, headers=headers, timeout=10)
+        # LOG PARA DEBUG NO TERMINAL DO DOCKER
+        print(f"--- ENVIANDO PARA SUPERFRETE ({SUPERFRETE_URL}) ---")
+        print(f"Payload: {payload}")
         
-        # BLINDAGEM: Se não for sucesso, retorna erro legível e não tenta ler JSON
+        # Timeout adicionado para não travar
+        response = requests.post(SUPERFRETE_URL, json=payload, headers=headers, timeout=15)
+        
+        # BLINDAGEM CONTRA ERRO 500: Se não for 200, não tenta ler JSON
         if response.status_code != 200:
-            print(f"ERRO SUPERFRETE API ({response.status_code}): {response.text}")
+            print(f"--- ERRO SUPERFRETE: {response.status_code} ---")
+            print(f"Body: {response.text}") 
             return jsonify({"erro": "Erro na API de Frete", "detalhes": response.text}), response.status_code
 
-        # Tenta ler o JSON. Se a resposta for texto/html, captura o erro e evita o 500
+        # Tenta parsear JSON
         try:
             cotacoes = response.json()
         except json.JSONDecodeError:
-            print(f"ERRO DE DECODE JSON. Resposta: {response.text}")
-            return jsonify({"erro": "Erro na resposta da transportadora (formato inválido)"}), 502
+            return jsonify({"erro": "Erro na resposta da transportadora (JSON inválido)"}), 502
 
         opcoes = []
         
-        # Normaliza a resposta (seja lista ou objeto único)
+        # Compatibilidade para API V1 ou V0
         lista_retorno = []
         if isinstance(cotacoes, list):
             lista_retorno = cotacoes
+        elif isinstance(cotacoes, dict) and 'shipping_options' in cotacoes:
+            lista_retorno = cotacoes['shipping_options']
         elif isinstance(cotacoes, dict):
-            if 'shipping_options' in cotacoes:
-                lista_retorno = cotacoes['shipping_options']
-            else:
-                lista_retorno = [cotacoes]
+            # Caso raro de objeto único
+            lista_retorno = [cotacoes]
 
         for c in lista_retorno:
-            # Pula itens com erro
-            if isinstance(c, dict) and c.get('error'): continue
+            if isinstance(c, dict) and ('error' in c and c['error']): continue
             
+            # Tratamento flexível de chaves
             nome = c.get('name') or c.get('service', {}).get('name') or 'Entrega'
             preco = c.get('price') or c.get('custom_price') or c.get('vlrFrete')
             prazo = c.get('delivery_time') or c.get('days') or c.get('prazoEnt')
 
-            # PROTEÇÃO CRÍTICA: Se 'prazo' for None, usa 10 como padrão para não quebrar o 'int()'
             if preco:
                 opcoes.append({
                     "servico": nome,
                     "transportadora": "Correios", 
                     "preco": float(preco) + 4.00, # Taxa de manuseio
-                    "prazo": int(prazo or 10) + 2
+                    "prazo": int(prazo or 10) + 2 # Margem de segurança
                 })
 
         opcoes.sort(key=lambda x: x['preco'])
         return jsonify(opcoes)
 
-    except requests.exceptions.Timeout:
-        return jsonify({"erro": "Tempo limite excedido ao calcular frete"}), 504
     except Exception as e:
-        print(f"--- ERRO INTERNO DO PYTHON: {e} ---")
-        traceback.print_exc()
+        print(f"--- ERRO INTERNO PYTHON: {e} ---")
+        traceback.print_exc() # Mostra a linha exata do erro no terminal
         return jsonify({"erro": "Erro interno no servidor", "msg": str(e)}), 500
 
 if __name__ == '__main__':
+    # Roda em 0.0.0.0 para aceitar conexões externas do Docker
     app.run(debug=True, host='0.0.0.0', port=5000)
