@@ -23,6 +23,7 @@
         .text-theme { color: var(--primary); }
         .text-secondary { color: var(--secondary); }
         .bg-theme { background-color: var(--primary); }
+        .bg-secondary { background-color: var(--secondary); }
         .border-theme { border-color: var(--primary); }
         .hover\:bg-theme:hover { background-color: var(--primary); }
         .ring-theme { --tw-ring-color: var(--primary); }
@@ -110,8 +111,8 @@
                         <i data-lucide="shopping-bag" class="w-5 h-5 text-gray-700"></i>
                         <span id="cart-count" class="absolute top-1 right-1 bg-theme text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
                     </div>
-                    <div class="border border-l-0 border-gray-100 rounded-r px-4 py-1.5 text-sm font-bold bg-white block">
-                        <span id="cart-total-header" class="text-secondary">R$ 0,00</span>
+                    <div class="border border-l-0 border-gray-100 rounded-r px-4 py-1.5 text-sm font-bold bg-secondary block">
+                        <span id="cart-total-header" class="text-white">R$ 0,00</span>
                     </div>
                 </button>
             </div>
@@ -176,6 +177,23 @@
                     {% endfor %}
                 </div>
                 {% endif %}
+
+                {% if p.variantes and p.variantes|length > 0 %}
+                <div class="block md:hidden mt-6 border-t border-gray-100 pt-4">
+                    <label class="text-sm font-bold text-gray-900 uppercase tracking-wide block mb-3 text-center">
+                        Escolha a Cor: <span id="color-label-mobile" class="text-theme font-normal"></span>
+                    </label>
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        {% for v in p.variantes %}
+                        <button onclick="selectVariant('{{ v.nome }}', '{{ v.foto }}')" 
+                                class="w-10 h-10 rounded-full border-2 border-gray-200 hover:border-theme focus:ring-2 ring-theme ring-offset-2 bg-cover bg-center transition-all"
+                                style="background-image: url('{{ v.foto }}');"
+                                title="{{ v.nome }}">
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <div class="text-center md:text-left">
@@ -201,7 +219,7 @@
                 </div>
 
                 {% if p.variantes and p.variantes|length > 0 %}
-                <div class="mb-8">
+                <div class="mb-8 hidden md:block">
                     <label class="text-sm font-bold text-gray-900 uppercase tracking-wide block mb-3">
                         Escolha a Cor: <span id="color-label" class="text-theme font-normal"></span>
                     </label>
@@ -347,7 +365,15 @@
         function selectVariant(name, photo) {
             selectedColor = name;
             selectedPhoto = photo;
-            document.getElementById('color-label').innerText = name;
+            
+            // Atualiza label do Desktop
+            const desktopLabel = document.getElementById('color-label');
+            if(desktopLabel) desktopLabel.innerText = name;
+            
+            // Atualiza label do Mobile
+            const mobileLabel = document.getElementById('color-label-mobile');
+            if(mobileLabel) mobileLabel.innerText = name;
+            
             changeImage(photo);
         }
 
