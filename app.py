@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 import traceback
+import json
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -11,7 +12,8 @@ load_dotenv()
 app = Flask(__name__)
 
 # --- CONFIGURAÇÕES GERAIS ---
-DIRECTUS_URL = os.getenv("DIRECTUS_URL", "https://api2.leanttro.com")
+# CORREÇÃO: .rstrip('/') impede que a URL fique com barras duplas (ex: .com//assets)
+DIRECTUS_URL = os.getenv("DIRECTUS_URL", "https://api2.leanttro.com").rstrip('/')
 DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN", "") 
 LOJA_ID = os.getenv("LOJA_ID", "") 
 
@@ -84,7 +86,7 @@ def get_categorias(headers):
     except: pass
     return []
 
-# --- ROTA: HOME (INDEX) - CAMINHO FIXADO /presentes/ ---
+# --- ROTA: HOME (INDEX) ---
 @app.route('/presentes/')
 def index():
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
@@ -125,7 +127,7 @@ def index():
                     "classe_frete": p.get('classe_frete', 'Pequeno'),
                     "variantes": variantes_tratadas,
                     "descricao": p.get('descricao', ''),
-                    "categoria_id": p.get('categoria_id') # CORREÇÃO AQUI
+                    "categoria_id": p.get('categoria_id')
                 })
     except Exception as e:
         print(f"Erro Produtos: {e}")
@@ -153,7 +155,7 @@ def index():
 
     return render_template('index.html', loja=loja, categorias=categorias, produtos=produtos, posts=posts, directus_url=DIRECTUS_URL)
 
-# --- ROTA: PÁGINA DE PRODUTO INDIVIDUAL - CAMINHO FIXADO /presentes/... ---
+# --- ROTA: PÁGINA DE PRODUTO INDIVIDUAL ---
 @app.route('/presentes/produto/<slug>')
 def produto(slug):
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
@@ -201,7 +203,7 @@ def produto(slug):
 
     return render_template('produtos.html', loja=loja, categorias=categorias, p=product_data, directus_url=DIRECTUS_URL)
 
-# --- ROTA: POST DO BLOG - CAMINHO FIXADO /presentes/... ---
+# --- ROTA: POST DO BLOG ---
 @app.route('/presentes/blog/<slug>')
 def blog_post(slug):
     headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"} if DIRECTUS_TOKEN else {}
@@ -210,7 +212,6 @@ def blog_post(slug):
     
     post_data = None
     try:
-        # Busca o post pelo slug
         url_post = f"{DIRECTUS_URL}/items/posts?filter[slug][_eq]={slug}&filter[loja_id][_eq]={LOJA_ID}&filter[status][_eq]=published"
         resp = requests.get(url_post, headers=headers)
         
@@ -244,7 +245,7 @@ def blog_post(slug):
 def blog_list():
     return index() 
 
-# --- ROTA: CÁLCULO DE FRETE (DEBUG ATUALIZADO) ---
+# --- ROTA: CÁLCULO DE FRETE (BLINDADA CONTRA ERRO 500) ---
 @app.route('/presentes/api/calcular-frete', methods=['POST'])
 def calcular_frete():
     data = request.json
@@ -260,22 +261,25 @@ def calcular_frete():
     comprimento_max = 0.0
     valor_seguro = 0.0
 
-    # Cálculo das dimensões baseado na sua lógica
     for item in itens_carrinho:
         classe = item.get('classe_frete', 'Pequeno')
         qtd = int(item.get('qtd', 1))
+        
+        # Proteção: Usa .get para não crashar se a classe não existir no dicionário
         medidas = DIMENSOES.get(classe, DIMENSOES['Pequeno'])
+        
         peso_total += medidas['weight'] * qtd
         altura_total += medidas['height'] * qtd 
         largura_max = max(largura_max, medidas['width'])
         comprimento_max = max(comprimento_max, medidas['length'])
-        if item.get('preco'): valor_seguro += float(item['preco']) * qtd
+        if item.get('preco'): 
+            valor_seguro += float(item['preco']) * qtd
 
-    # Ajustes mínimos dos Correios/Superfrete
-    altura_total = max(altura_total, 2)
-    largura_max = max(largura_max, 11)
-    comprimento_max = max(comprimento_max, 16)
-    peso_total = max(peso_total, 0.3)
+    # Ajustes: Força inteiros nas dimensões e arredonda o peso (evita erros da API)
+    altura_total = int(max(altura_total, 2))
+    largura_max = int(max(largura_max, 11))
+    comprimento_max = int(max(comprimento_max, 16))
+    peso_total = round(max(peso_total, 0.3), 2)
     valor_seguro = max(valor_seguro, 25.00)
 
     headers = {
@@ -295,63 +299,68 @@ def calcular_frete():
             "insurance_value": valor_seguro 
         },
         "package": { 
-            "height": int(altura_total), 
-            "width": int(largura_max), 
-            "length": int(comprimento_max), 
+            "height": altura_total, 
+            "width": largura_max, 
+            "length": comprimento_max, 
             "weight": peso_total 
         }
     }
 
     try:
-        # LOG PARA DEBUG NO TERMINAL DO DOCKER
-        print(f"--- ENVIANDO PARA SUPERFRETE ({SUPERFRETE_URL}) ---")
-        print(f"Payload: {payload}")
-        
+        print(f"--- ENVIANDO PARA SUPERFRETE ---")
+        # Timeout para não travar o site se a Superfrete cair
         response = requests.post(SUPERFRETE_URL, json=payload, headers=headers, timeout=10)
         
+        # BLINDAGEM: Se não for sucesso, retorna erro legível e não tenta ler JSON
         if response.status_code != 200:
-            print(f"--- ERRO SUPERFRETE: {response.status_code} ---")
-            print(f"Body: {response.text}") # AQUI VAI APARECER O MOTIVO REAL
-            # Retorna o erro real para o frontend em vez de forçar 500
+            print(f"ERRO SUPERFRETE API ({response.status_code}): {response.text}")
             return jsonify({"erro": "Erro na API de Frete", "detalhes": response.text}), response.status_code
 
-        cotacoes = response.json()
+        # Tenta ler o JSON. Se a resposta for texto/html, captura o erro e evita o 500
+        try:
+            cotacoes = response.json()
+        except json.JSONDecodeError:
+            print(f"ERRO DE DECODE JSON. Resposta: {response.text}")
+            return jsonify({"erro": "Erro na resposta da transportadora (formato inválido)"}), 502
+
         opcoes = []
         
-        # Compatibilidade para API V1 ou V0
+        # Normaliza a resposta (seja lista ou objeto único)
         lista_retorno = []
         if isinstance(cotacoes, list):
             lista_retorno = cotacoes
-        elif isinstance(cotacoes, dict) and 'shipping_options' in cotacoes:
-            lista_retorno = cotacoes['shipping_options']
         elif isinstance(cotacoes, dict):
-            # Caso raro de objeto único
-            lista_retorno = [cotacoes]
+            if 'shipping_options' in cotacoes:
+                lista_retorno = cotacoes['shipping_options']
+            else:
+                lista_retorno = [cotacoes]
 
         for c in lista_retorno:
-            if isinstance(c, dict) and ('error' in c and c['error']): continue
+            # Pula itens com erro
+            if isinstance(c, dict) and c.get('error'): continue
             
-            # Tratamento flexível de chaves
             nome = c.get('name') or c.get('service', {}).get('name') or 'Entrega'
             preco = c.get('price') or c.get('custom_price') or c.get('vlrFrete')
             prazo = c.get('delivery_time') or c.get('days') or c.get('prazoEnt')
 
+            # PROTEÇÃO CRÍTICA: Se 'prazo' for None, usa 10 como padrão para não quebrar o 'int()'
             if preco:
                 opcoes.append({
                     "servico": nome,
                     "transportadora": "Correios", 
                     "preco": float(preco) + 4.00, # Taxa de manuseio
-                    "prazo": int(prazo) + 2       # Margem de segurança
+                    "prazo": int(prazo or 10) + 2
                 })
 
         opcoes.sort(key=lambda x: x['preco'])
         return jsonify(opcoes)
 
+    except requests.exceptions.Timeout:
+        return jsonify({"erro": "Tempo limite excedido ao calcular frete"}), 504
     except Exception as e:
-        print(f"--- ERRO INTERNO PYTHON: {e} ---")
-        traceback.print_exc() # Mostra a linha exata do erro no terminal
+        print(f"--- ERRO INTERNO DO PYTHON: {e} ---")
+        traceback.print_exc()
         return jsonify({"erro": "Erro interno no servidor", "msg": str(e)}), 500
 
 if __name__ == '__main__':
-    # Roda em 0.0.0.0 para aceitar conexões externas do Docker
     app.run(debug=True, host='0.0.0.0', port=5000)
