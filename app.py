@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 import traceback
+import json  # Adicionado para garantir o parse do JSON caso venha como string
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -99,6 +100,8 @@ def index():
         filter_str += f"&filter[categoria_id][_eq]={cat_filter}"
 
     produtos = []
+    novidades = [] # Lista separada para Novidades via JSON
+
     try:
         url_prod = f"{DIRECTUS_URL}/items/produtos?{filter_str}"
         resp_prod = requests.get(url_prod, headers=headers)
@@ -114,7 +117,25 @@ def index():
                         v_img = get_img_url(v.get('foto')) if v.get('foto') else img_url
                         variantes_tratadas.append({"nome": v.get('nome', 'Padrão'), "foto": v_img})
 
-                produtos.append({
+                # --- LÓGICA DE ESPECIFAÇÕES (JSON) PARA NOVIDADES ---
+                specs = p.get('especificacoes')
+                is_novidade = False
+                ordem_novidade = 9999
+
+                # Tenta parsear se for string, ou usa direto se for dict
+                try:
+                    if specs and isinstance(specs, str):
+                        specs = json.loads(specs)
+                    
+                    if isinstance(specs, dict):
+                        if specs.get('novidade') == True:
+                            is_novidade = True
+                            ordem_novidade = int(specs.get('ordem', 9999))
+                except:
+                    pass
+                # ---------------------------------------------------
+
+                prod_obj = {
                     "id": str(p['id']), 
                     "nome": p['nome'],
                     "slug": p.get('slug'),
@@ -125,8 +146,19 @@ def index():
                     "classe_frete": p.get('classe_frete', 'Pequeno'),
                     "variantes": variantes_tratadas,
                     "descricao": p.get('descricao', ''),
-                    "categoria_id": p.get('categoria_id') # CORREÇÃO AQUI
-                })
+                    "categoria_id": p.get('categoria_id'),
+                    "ordem_novidade": ordem_novidade # Guarda a ordem
+                }
+
+                produtos.append(prod_obj)
+
+                # Se foi marcado como novidade, adiciona na lista específica
+                if is_novidade:
+                    novidades.append(prod_obj)
+            
+            # Ordena a lista de novidades baseada no número 'ordem' do JSON
+            novidades.sort(key=lambda x: x['ordem_novidade'])
+
     except Exception as e:
         print(f"Erro Produtos: {e}")
 
@@ -151,7 +183,8 @@ def index():
                 })
     except: pass
 
-    return render_template('index.html', loja=loja, categorias=categorias, produtos=produtos, posts=posts, directus_url=DIRECTUS_URL)
+    # Passamos agora 'novidades' explicitamente para o template
+    return render_template('index.html', loja=loja, categorias=categorias, produtos=produtos, novidades=novidades, posts=posts, directus_url=DIRECTUS_URL)
 
 # --- ROTA: PÁGINA DE PRODUTO INDIVIDUAL - CAMINHO FIXADO /presentes/... ---
 @app.route('/presentes/produto/<slug>')

@@ -284,16 +284,16 @@
     </section>
 
     <section class="pb-16 container mx-auto px-4">
-        {% if produtos|length == 0 %}
+        {% if novidades|length == 0 %}
         <div class="text-center py-20 bg-gray-50 rounded-lg">
             <i data-lucide="package-open" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
-            <p class="text-gray-500">Nenhum produto cadastrado nesta categoria.</p>
-            <a href="/presentes/" class="text-theme mt-2 block font-bold">Ver Todos</a>
+            <p class="text-gray-500">Nenhum destaque cadastrado nesta semana.</p>
+            <a href="#all-products-list" class="text-theme mt-2 block font-bold">Ver Todos os Produtos Abaixo</a>
         </div>
         {% endif %}
 
         <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {% for p in produtos[:12] %}
+            {% for p in novidades %}
             <div class="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col relative" id="card-{{ p.id }}">
                 
                 <div class="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start">
